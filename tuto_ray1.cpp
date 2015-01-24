@@ -43,7 +43,7 @@ int build_sources( const gk::Mesh *mesh )
             sources.push_back( Source(mesh->triangle(i), gk::Color(material.emission)) );
     }
     
-    printf("%lu sources.\n", sources.size());
+    printf("%u sources.\n", sources.size());
     return sources.size();
 }
 
@@ -57,7 +57,7 @@ int build_triangles( const gk::Mesh *mesh )
     for(int i= 0; i < mesh->triangleCount(); i++)
         triangles.push_back( mesh->triangle(i) );
     
-    printf("%lu triangles.\n", triangles.size());
+    printf("%u triangles.\n", triangles.size());
     return triangles.size();
 }
 

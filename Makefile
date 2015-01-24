@@ -6,7 +6,7 @@ ifndef config
 endif
 export config
 
-PROJECTS := image_viewer tuto_miniOBJ tp1shader batch_perf tutorial1 tutorial2 tutorial3 tessellation_tuto tessellation_sphere compute_tutorial1 compute_tutorial2 tuto_ray1 mini_gl3core
+PROJECTS := image_viewer tuto_miniOBJ tp1shader batch_perf tutorial1 tutorial2 tutorial3 tessellation_tuto tessellation_sphere compute_tutorial1 compute_tutorial2 tuto_ray1
 
 .PHONY: all clean help $(PROJECTS)
 
@@ -60,10 +60,6 @@ tuto_ray1:
 	@echo "==== Building tuto_ray1 ($(config)) ===="
 	@${MAKE} --no-print-directory -C . -f tuto_ray1.make
 
-mini_gl3core: 
-	@echo "==== Building mini_gl3core ($(config)) ===="
-	@${MAKE} --no-print-directory -C . -f mini_gl3core.make
-
 clean:
 	@${MAKE} --no-print-directory -C . -f image_viewer.make clean
 	@${MAKE} --no-print-directory -C . -f tuto_miniOBJ.make clean
@@ -77,7 +73,6 @@ clean:
 	@${MAKE} --no-print-directory -C . -f compute_tutorial1.make clean
 	@${MAKE} --no-print-directory -C . -f compute_tutorial2.make clean
 	@${MAKE} --no-print-directory -C . -f tuto_ray1.make clean
-	@${MAKE} --no-print-directory -C . -f mini_gl3core.make clean
 
 help:
 	@echo "Usage: make [config=name] [target]"
@@ -101,6 +96,5 @@ help:
 	@echo "   compute_tutorial1"
 	@echo "   compute_tutorial2"
 	@echo "   tuto_ray1"
-	@echo "   mini_gl3core"
 	@echo ""
 	@echo "For more information, see http://industriousone.com/premake/quick-start"

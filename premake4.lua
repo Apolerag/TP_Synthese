@@ -99,7 +99,7 @@ for i, name in ipairs(project_files) do
 end
 
 -- squelette d'application GL3 core profile sans utiliser gKit
-project("mini_gl3core")
-	language "C++"
-	kind "ConsoleApp"
-	files { "mini_gl3core.cpp" }
+--project("mini_gl3core")
+--	language "C++"
+--	kind "ConsoleApp"
+--	files { "mini_gl3core.cpp" }
