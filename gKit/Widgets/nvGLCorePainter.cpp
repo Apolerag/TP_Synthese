@@ -51,9 +51,7 @@ const static gk::glsl::vec4 s_colors[cNbColors]=
 
 GLCorePainter::GLCorePainter( )
     :
-    m_font_texture(0),
-	m_widget_program(), m_widgets(), 
-	m_string_program(), m_strings()
+    m_font_texture(0)
 {}
 
 GLCorePainter::~GLCorePainter( )
@@ -132,9 +130,7 @@ void GLCorePainter::end( )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     
-    //~ printf("shapes: ");
     m_widgets.draw();
-    //~ printf("texts: ");
     m_strings.draw();
     
     m_widgets.clear();
@@ -166,8 +162,7 @@ void GLCorePainter::draw_glyph( const int x, const int y, const UIGlyph& glyph )
     m_strings.restart();
 }
 
-
-void GLCorePainter::drawString( const Rect& rect, const char *text, int colorId )
+void GLCorePainter::drawString( int x, int y, const char *text, int lines, int colorId )
 {
     GLCore::string_params params(&m_string_program);
     params.colorId= colorId;
@@ -177,27 +172,24 @@ void GLCorePainter::drawString( const Rect& rect, const char *text, int colorId 
     m_strings.begin(params);
     
     int w= 0;
-    int n= 1;
-    for(int i= 0; text[i] != 0; i++)
+    int n= 0;
+    for(int i= 0; n < lines && text[i] != 0; i++)
     {
         if(text[i] == '\n')
         {
             n+= 1;
-            if(rect.h - m_font->getFontHeight() * n < 0) break;
-            
             w= 0;
             continue;
         }
         
         const UIGlyph& glyph= m_font->getGlyph(text[i]);
-        draw_glyph(rect.x + w, rect.y + rect.h - m_font->getFontHeight() * n, glyph);
+        draw_glyph(x + w, y + m_font->getFontHeight() * n, glyph);
         
         w+= glyph.advance;
     }
     
     m_strings.end();
 }
-
 
 void GLCorePainter::drawRect( const Rect & rect, int fillColorId, int borderColorId ) {
     float x0 = rect.x;
@@ -211,36 +203,6 @@ void GLCorePainter::drawRect( const Rect & rect, int fillColorId, int borderColo
     params.border= s_colors[borderColorId];
     params.fillId= fillColorId;
     params.fill= s_colors[fillColorId];
-    params.zones= gk::glsl::vec2(0, 0);
-
-    m_widgets.begin(params);
-        m_widgets.push_texcoord(0, 0);
-        m_widgets.push_vertex(x0, y0);
-
-        m_widgets.push_texcoord(0, 0);
-        m_widgets.push_vertex(x1, y0);
-
-        m_widgets.push_texcoord(0, 0);
-        m_widgets.push_vertex(x0, y1);
-
-        m_widgets.push_texcoord(0, 0);
-        m_widgets.push_vertex(x1, y1);
-    m_widgets.end();
-}
-
-
-void GLCorePainter::drawRGBRect( const Rect & rect, const RGB8 fillColor, const RGB8 borderColor ) {
-    float x0 = rect.x;
-    float x1 = rect.x + rect.w;
-
-    float y0 = rect.y;
-    float y1 = rect.y + rect.h;
-
-    nv::GLCore::widget_params params(&m_widget_program);
-    params.borderId= -1;
-    params.border= gk::glsl::vec4(borderColor.r / 255.f, borderColor.g / 255.f, borderColor.b / 255.f, borderColor.a / 255.f);
-    params.fillId= -1;
-    params.fill= gk::glsl::vec4(fillColor.r / 255.f, fillColor.g / 255.f, fillColor.b / 255.f, fillColor.a / 255.f);
     params.zones= gk::glsl::vec2(0, 0);
 
     m_widgets.begin(params);

@@ -29,7 +29,7 @@ struct Triangle
     }
     
     //! renvoie la normale du triangle.
-    Normal normal( ) const
+    Normal normal( ) 
     {
         Vector ab(a, b);
         Vector ac(a, c);
@@ -72,7 +72,7 @@ struct Triangle
     }
     
     //! renvoie un triangle transforme par 't'.
-    Triangle transform( const Transform& t ) const
+    Triangle transform( const Transform& t )
     {
         return Triangle( t(a), t(b), t(c) );
     }
@@ -81,8 +81,9 @@ struct Triangle
     //! renvoie faux s'il n'y a pas d'intersection valide, une intersection peut exister mais peut ne pas se trouver dans l'intervalle [0 htmax] du rayon. \n
     //! renvoie vrai + les coordonnees barycentriques (ru, rv) du point d'intersection + sa position le long du rayon (rt). \n
     //! convention barycentrique : t(u, v)= (1 - u - v) * a + u * b + v * c \n
-    //! cf point(u, v) pour "retrouver" le point associe aux coordonnees (u,v, 1-u-v), PNTriangle::normal(u, v) la normale, et PTNTriangle::texcoord(u, v) les coordonnees de textures.
-
+    //! utiliser Mesh::getUVNormal() et Mesh::getUVTexCoord() pour interpoler les attributs du point d'intersection. \n
+    //! ou PNTriangle::getUVNormal(). \n
+    
     /*! le parametre  htmax permet de trouver tres facilement l'intersection la plus proche de l'origine du rayon.
     \code
         float t= ray.tmax;      // ou t= HUGE_VAL; la plus grande distance le long du rayon.
@@ -137,6 +138,7 @@ struct Triangle
         return (rt < htmax && rt > RAY_EPSILON);
     }    
     
+    
     //! renvoie un point a l'interieur du triangle connaissant ses coordonnees barycentriques.
     //! convention p(u, v)= (1 - u - v) * a + u * b + v * c
     Point point( const float u, const float v ) const
@@ -156,9 +158,7 @@ struct Triangle
         return pdf;
     }
     
-    //! choisit une position aleatoirement a la surface du triangle et les coordonnees barycentriques (u,v, 1-u-v) et la probabilite de l'avoir choisie.
-    //! \param u1, u2 valeurs aleatoires entre [0 .. 1] utilisées pour le tirage aleatoire.
-    //! point(u, v) permet de "retrouver" le point associe, PNTriangle::normal(u, v) la normale, et PTNTriangle::texcoord(u, v) les coordonnees de textures.
+    //! choisit une position aleatoirement a la surface du triangle et renvoie la probabilite de l'avoir choisie.
     float sampleUniformUV( const float u1, const float u2, float &u, float& v ) const
     {
         float s= sqrtf(u1);
@@ -204,7 +204,6 @@ struct PNTriangle : public Triangle
     
     //! calcule la normale a l'interieur du triangle connaissant ses coordonnees barycentriques.
     //! convention n(u, v)= (1 - u - v) * na + u * nb + v * nc.
-    //! cf Triangle::sampleUniformUV() pour choisir uniformement une position sur le triangle.
     Normal normal( const float u, const float v ) const
     {
         const float w= 1.f - u - v;
@@ -212,13 +211,13 @@ struct PNTriangle : public Triangle
     }
     
     //! renvoie un pntriangle transforme par 't'.
-    PNTriangle transform( const Transform& t ) const
+    PNTriangle transform( const Transform& t )
     {
         return PNTriangle( t(a), t(na), t(b), t(nb), t(c), t(nc), id );
     }
     
     //! renvoie le triangle 'geometrique' support du PN triangle.
-    Triangle triangle( ) const { return Triangle(a, b, c, id); }
+    Triangle triangle( ) { return Triangle(a, b, c, id); }
 };
 
 
@@ -256,7 +255,7 @@ struct PTNTriangle : public PNTriangle
     ~PTNTriangle( ) {}
     
     //! renvoie un pntriangle transforme par 't'.
-    PTNTriangle transform( const Transform& t ) const
+    PTNTriangle transform( const Transform& t )
     {
         return PTNTriangle( 
             t(a), ta, t(na),
@@ -265,14 +264,13 @@ struct PTNTriangle : public PNTriangle
     }
     
     //! renvoie le triangle geometrique.
-    Triangle triangle( ) const { return Triangle(a, b, c, id); }
+    Triangle triangle( ) { return Triangle(a, b, c, id); }
     
     //! renvoie le pn triangle.
-    PNTriangle pntriangle( ) const { return PNTriangle(a, na, b, nb, c, nc, id); }
+    PNTriangle pntriangle( ) { return PNTriangle(a, na, b, nb, c, nc, id); }
     
     //! calcule les coordonnees de texture d'un point a l'interieur du triangle connaissant ses coordonnees barycentriques.
     //! convention t(u, v)= (1 - u - v) * ta + u * tb + v * tc.
-    //! cf Triangle::sampleUniformUV() pour choisir uniformement une position sur le triangle.
     Point texcoord( const float u, const float v ) const
     {
         const float w= 1.f - u - v;

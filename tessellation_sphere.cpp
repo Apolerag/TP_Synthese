@@ -9,6 +9,10 @@
 #include "ProgramManager.h"
 #include "Triangle.h"
 
+#ifndef GK_OPENGL4
+#error opengl4 non supporte par gKit, definir GK_OPENGL4 dans premake4.lua, re-generer le projet et recompiler.
+#endif
+
 
 class Tesselation4 : public gk::App
 {
@@ -34,14 +38,13 @@ public:
         gk::AppSettings settings;
         
         settings.setSamples(4);
-        settings.setGLVersion(4, 1);    // sur mac creer un contexte 3.2, bug sdl 2 :         settings.setGLVersion(3,2);
-
+        settings.setGLVersion(4, 1);
         settings.setGLCoreProfile();
         settings.setGLDebugContext();
         
         if(createWindow(1024, 768, settings) < 0)
             closeWindow();
-        
+
         ui.init();
         ui.reshape(windowWidth(), windowHeight());
     }

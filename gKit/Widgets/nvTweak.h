@@ -22,7 +22,7 @@ struct Tweak
     void doTweak( )
     {
         m_widgets.doLabel(nv::Rect(), label.c_str());
-        //~ if(m_widgets.doButton
+        if(m_widgets.doButton
     }
     
 };

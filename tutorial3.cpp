@@ -37,7 +37,7 @@ struct Format
 };
 
 
-//! squelette d'application gKit.
+
 class TP : public gk::App
 {
     nv::SdlContext m_widgets;
@@ -49,7 +49,7 @@ class TP : public gk::App
     gk::GLBuffer *m_index_buffer;
     int m_indices_size;
     
-    gk::GLCounter *m_time;
+    gk::GLQuery *m_time;
     
 public:
     // creation du contexte openGL et d'une fenetre
@@ -110,7 +110,7 @@ public:
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);       // desactive le buffer d'indices
         
         // mesure du temps de dessin
-        m_time= gk::createTimer();
+        m_time= gk::createTimeQuery();
         
         // ok, tout c'est bien passe
         return 0;
@@ -169,8 +169,9 @@ public:
         glViewport(0, 0, windowWidth(), windowHeight());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        // mesurer le temps d'execution
-        m_time->start();
+        //~ // mesurer le temps d'execution
+        //~ m_time->begin();
+        //~ GLint64 start; glGetInteger64v(GL_TIMESTAMP, &start);
         
         // dessiner quelquechose
         glUseProgram(m_program->name);
@@ -188,19 +189,23 @@ public:
         glUseProgram(0);
         glBindVertexArray(0);
         
-        // mesurer le temps d'execution
-        m_time->stop();
+        //~ // mesurer le temps d'execution
+        //~ GLint64 stop; glGetInteger64v(GL_TIMESTAMP, &stop);     // nano secondes
+        //~ m_time->end();
+        //~ GLuint64 cpu_time= (stop - start) / 1000;               // conversion en micro secondes
+        //~ GLuint64 gpu_time= m_time->result64() / 1000;        // conversion en micro secondes
         
-        // afficher le temps d'execution
-        {
-            m_widgets.begin();
-            m_widgets.beginGroup(nv::GroupFlags_GrowDownFromLeft);
+        //~ // afficher le temps d'execution
+        //~ {
+            //~ m_widgets.begin();
+            //~ m_widgets.beginGroup(nv::GroupFlags_GrowDownFromLeft);
             
-            m_widgets.doLabel(nv::Rect(), m_time->summary("draw").c_str());
+            //~ m_widgets.doLabel(nv::Rect(), Format("cpu time % 6ldus", cpu_time));
+            //~ m_widgets.doLabel(nv::Rect(), Format("gpu time % 3ldms % 3ldus", gpu_time / 1000, gpu_time % 1000));
             
-            m_widgets.endGroup();
-            m_widgets.end();
-        }
+            //~ m_widgets.endGroup();
+            //~ m_widgets.end();
+        //~ }
         
         // afficher le dessin
         present();

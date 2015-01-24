@@ -4,9 +4,9 @@
     uniform mat4 mvpMatrix;
     uniform mat4 normalMatrix;
     
-    layout(location= 0) in vec3 position;           //!< attribut
-    layout(location= 1) in vec3 texcoord;           //!< attribut
-    layout(location= 2) in vec3 normal;             //!< attribut
+    in vec3 position;           //!< attribut
+    in vec3 normal;             //!< attribut
+    in vec3 texcoord;           //!< attribut
     
     out vec3 vertex_normal;
     out vec2 vertex_texcoord;
@@ -20,7 +20,7 @@
 #endif
 
 #ifdef FRAGMENT_SHADER
-    uniform vec4 diffuse_color;
+    uniform vec4 color;
     uniform sampler2D diffuse_texture;
     
     in vec3 vertex_normal;
@@ -30,14 +30,7 @@
 
     void main( )
     {
-	vec4 diffuse= texture(diffuse_texture, vertex_texcoord);
-	if(diffuse.a < 0.1)
-		discard;
-	
-        fragment_color.rgb= diffuse_color.rgb * abs(normalize(vertex_normal).z) * diffuse.rgb;
-        //~ fragment_color.rgb= abs(normalize(vertex_normal));
-        //~ fragment_color= diffuse;
-        //~ fragment_color.rg= abs(normalize(vertex_texcoord));
+        fragment_color.rgb= 2 * color.rgb * abs(normalize(vertex_normal).z) * texture(diffuse_texture, vertex_texcoord).rgb;
     }
 #endif
 

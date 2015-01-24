@@ -179,7 +179,8 @@ public:
     
     Point( const float v ) : Vec3(v, v, v) {}
     
-    Point( const float _x, const float _y, const float _z= 0.f ) : Vec3(_x, _y, _z) {}
+    Point( const float _x, const float _y, const float _z ) : Vec3(_x, _y, _z) {}
+    
     
     explicit Point( const Vector &v ) :  Vec3( v.x, v.y, v.z )  {}
    
@@ -455,6 +456,9 @@ public:
             std::max( p1.z, p2.z ) );
     }
     
+    friend inline std::ostream &
+    operator<<( std::ostream &os, const BBox &b );
+    
     void print( ) const
     {
         printf("[ %.10f %.10f %.10f ] x [ %.10f %.10f %.10f ] ", 
@@ -573,15 +577,21 @@ public:
     }
     
     //! renvoie le centre de la boite.
-    const Point center( ) const
+    const Point getCenter( ) const
     {
         return (pMin + pMax) * .5f;
     }
     
     //! renvoie le centre de la boite, sur un axe particulier.
-    float center( const int axis ) const
+    float getCenter( const int axis) const
     {
         return (pMin[axis] + pMax[axis]) * .5f;
+    }
+    
+    //! renvoie le centre de la boite
+    void getCenter( Point& center ) const
+    {
+        center= getCenter();
     }
     
     //! renvoie le volume de l'aabox.
@@ -594,8 +604,6 @@ public:
     //! renvoie l'aire de l'aabox
     float SurfaceArea( ) const
     {
-        //~ if(isEmpty()) return 0.f;
-        
         const Vector d(pMin, pMax);
         const float area= 2.f * d.x * d.y + 2.f * d.x * d.z + 2.f * d.y * d.z;
         return area;

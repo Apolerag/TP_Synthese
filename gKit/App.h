@@ -2,7 +2,6 @@
 #ifndef _GK_APP_H
 #define _GK_APP_H
 
-#include "GL/GLPlatform.h"
 #include "SDLPlatform.h"
 
 
@@ -126,29 +125,17 @@ struct AppSettings
         setGLProfileFlags(profile_flags | SDL_GL_CONTEXT_PROFILE_CORE);
     }
    
-    //! demande la creation d'un contexte openGL ES 1/2/3.
-    //! \todo a tester
-    void setGLESProfile( const int major, const int minor= 0 )
+    //! demande la creation d'un contexte openGL ES 1/2.
+    void setGLESProfile( const int major )
     {
         setGLProfileFlags(profile_flags | SDL_GL_CONTEXT_PROFILE_ES);
-        major_version= major;
-        minor_version= minor;
     }
     
     //! utilisation interne. 
     void apply( ) const;
 };
 
-#ifndef _MSC_VER
-  #define GK_CALLBACK
-#else
-  #define GK_CALLBACK __stdcall
-#endif
-
-extern void GK_CALLBACK AppDebug( GLenum source, GLenum type, unsigned int id, GLenum severity, 
-    GLsizei length, const char *message, const void *userParam );
-
-
+    
 //! application de base SDL + openGL. 
 //! consultez le <a href="http://www710.univ-lyon1.fr/~jciehl/Public/SDL_PG/index.html">libSDL Programming Guide</a> 
 class App
@@ -243,18 +230,6 @@ public:
     
     //! traitement des evenements claviers.
     virtual void processKeyboardEvent( SDL_KeyboardEvent& event )
-    {
-        return;
-    }
-    
-    //! traitement des evenements claviers.
-    virtual void processTextEvent( const char *string )
-    {
-        return;
-    }    
-    
-    //! traitement des evenements drag & drop.
-    virtual void processDropEvent( const char *file )
     {
         return;
     }

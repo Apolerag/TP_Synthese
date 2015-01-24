@@ -72,7 +72,7 @@ Rect UIPainter::getGraphRect( const Rect& r, const int *values, const int n, Rec
         rg.w = rect.w - 2 * rg.x;
     }
     if (rect.h == 0) {
-        rg.h = 64;
+        rg.h = 48;
         rect.h = rg.h + 2 * rg.y;
     } else {
         rg.h = rect.h - 2 * rg.y;
@@ -86,82 +86,6 @@ void UIPainter::drawGraph( const Rect& r, const int *values, const int n, const 
     drawFrame( r, Point( rg.x, rg.y ), false, false, false );
     
 }
-
-Rect UIPainter::getTimebarRect( const Rect& r, const Rect& text, Rect& rt, const float start, const float stop, Rect& rb )
-{
-    Rect rect= r;
-    if(rect.w == 0)
-        rect.w = getAutoWidth() + text.w + 3 * getWidgetMargin();
-    if(rect.h == 0)
-        rect.h = text.h;
-    
-    rt.x= getWidgetMargin();
-    rt.y= getWidgetMargin();
-    rt.w= text.w,
-    rt.h= text.h;
-    float w= rect.w - text.w - 3 * getWidgetMargin();
-    rb.x= 2 * getWidgetMargin() + text.w;
-    rb.y= getWidgetMargin();
-    rb.w= w;
-    rb.h= text.h;
-    
-    return rect;
-}
-
-void UIPainter::drawTimebar( const Rect& r, const char *text, const Rect& rt, const float start, const float stop, const Rect& rb )
-{
-    drawText( Rect(r.x + rt.x, r.y + rt.y, rt.w, rt.h), text );
-
-    drawRect( Rect(r.x + rb.x, r.y + rb.y, rb.w, rb.h), cBase, cOutline );
-    drawRect( Rect(r.x + rb.x + start * rb.w, r.y + rb.y, std::max(2.f, (stop - start) * rb.w), rb.h - 4), cOutline, cOutline );
-}
-
-
-Rect UIPainter::getMatrixRect( const Rect& r, const int numCells, Rect& rc ) const
-{
-    int cols= 0;
-    int rows= 0;
-    
-    Rect rect= r;
-    if(rect.w == 0) {
-        rect.w= getWidgetMargin() + numCells * (getAutoHeight() + getWidgetMargin());
-        if(rect.w > 1280)
-            rect.w= 1280;
-        
-        cols= (rect.w + getWidgetMargin()) / (getAutoHeight() + getWidgetMargin());
-        rows= numCells / cols;
-        if(numCells % cols) rows++;
-    }
-    
-    if(rect.h == 0)
-        rect.h= getWidgetMargin() + rows * (getAutoHeight() + getWidgetMargin());
-    
-    rc= Rect(getWidgetMargin(), getWidgetMargin(), getAutoHeight() + getWidgetMargin(), getAutoHeight() + getWidgetMargin());
-    return rect;
-}
-
-void UIPainter::drawMatrix( const Rect& rect, const RGB8 *colors, const int numColors, int *selected, int *hovered )
-{
-    int n= (rect.w + getWidgetMargin()) / (getAutoHeight() + getWidgetMargin());
-    int rows= numColors / n;
-    if(numColors % n) rows++;
-
-    //~ printf("draw matrix %d %dx%d\n", numColors, rows, n);
-    int s= (selected != NULL) ? *selected : -1;
-    int h= (hovered != NULL) ? *hovered : -1;
-    
-    int i= 0;
-    for(int r= 1; r <= rows; r++)
-    for(int c= 0; c < n; c++, i++)
-        if(i < numColors) {
-            Rect cell= Rect(rect.x + c * (getAutoHeight() + getWidgetMargin()), rect.y + rect.h - r * (getAutoHeight() + getWidgetMargin()), getAutoHeight(), getAutoHeight());
-            
-            if(i == s) drawRGBRect(cell, RGB8(1.f, 0.f, 0.f), RGB8());  // style !!
-            else if(i == h) drawRGBRect(cell, RGB8(1.f, 1.f, 0.f), RGB8());
-            else drawRGBRect(cell, colors[i], RGB8());
-        }
-}
-
 
 Rect UIPainter::getLabelRect(const Rect& r, const Rect& text, Rect& rt ) const
 {
@@ -381,8 +305,7 @@ Rect UIPainter::getComboRect(const Rect& r, int numOptions, const Rect& options,
     rd.y = rt.y;
 
     if (rect.w == 0) {
-        //~ rt= options;
-        rt.w= options.w;
+        rt= options;
         rect.w = rt.w + 2 * rt.x;
 
         //Add room for drop down button
@@ -505,8 +428,8 @@ void UIPainter::drawText( const Rect& r, const char *text, int nbLines, int care
     if (isHover || isOn /* || isFocus*/) {
         drawRect(r, cFontBack + (isHover) + (isOn << 1), cOutline);
     }
-    
-    drawString(r, text, cFont);
+
+    drawString(r.x, r.y, text, nbLines, cFont);
 
     if (caretPos != -1) {
         drawRect(Rect( r.x + caretPos, r.y, 2, r.h), cOutline, cOutline);

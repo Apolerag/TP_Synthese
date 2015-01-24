@@ -1,0 +1,36 @@
+newmtl default
+Kd  0.7500  0.7500  0.7500
+Ns 0
+
+newmtl white
+Kd  0.7500  0.7500  0.7500
+
+map_Kd bigguy_ambient.png
+#map_Kd height.jpg
+#map_Kd simple.hdr
+
+newmtl diffuse50SG
+Kd  0.5000  0.5000  0.5000
+Ns 0
+
+newmtl diffuseLuminaire1SG
+Le 1.000 1.000 1.000
+
+newmtl red
+Kd  0.2 0 0
+Ks  0.5 0 0
+Ns 50
+
+newmtl miror
+Kd  0.2000  0.2000  0.2000
+Ks  0.8 0.8 0.8
+Ns 400
+
+newmtl blue
+Kd  0.1420  0.1420  0.9500
+Ns 0
+
+newmtl diffusetexture
+Kd  1.0000  1.0000  1.0000
+map_Kd red.png
+Ns 0

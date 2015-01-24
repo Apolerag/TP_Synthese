@@ -11,6 +11,75 @@
 
 namespace gk {
 
+//! representation d'un shader object.
+//! \ingroup OpenGL.
+//! \todo a virer
+class GLShader : public GLResource
+{
+    // non copyable
+    GLShader( const GLShader& );
+    GLShader& operator= ( const GLShader& );
+
+public:
+    //! types de shaders.
+    enum
+    {
+        VERTEX= 0,      //!< type d'un vertex shader,
+        FRAGMENT,       //!< type d'un fragment shader,
+        GEOMETRY,       //!< type d'un geometry shader,
+        CONTROL,        //!< type d'un control shader,
+        EVALUATION,     //!< type d'un evaluation shader,
+        COMPUTE,        //!< type d'un compute shader
+        SHADERTYPE_LAST
+    };
+    
+    unsigned int type;  //!< type de shader, constante gk::GLShader::VERTEX, etc.
+    
+    //! constructeur, 
+    //! \param type correspond a une contante gk::GLShader::VERTEX, etc.
+    GLShader( ) : GLResource(), type(SHADERTYPE_LAST) {}
+    
+    GLShader( const char *_label ) : GLResource(_label), type(SHADERTYPE_LAST) {}
+    
+    GLShader *create( const unsigned int _type )
+    {
+        assert(name == 0 && "create shader error");
+        if(_type >= SHADERTYPE_LAST)
+            return this;
+        
+        type= _type;
+        name= glCreateShader(types[type]);
+        if(name == 0)
+            return this;
+        manage();
+        if(label.empty())
+            DEBUGLOG("create %s shader %d\n", labels[type], name);
+        else
+            DEBUGLOG("create %s shader %d, label '%s'\n", labels[type], name, label.c_str());
+        return this;
+    }
+    
+    void release( )
+    {
+        if(name != 0)
+            glDeleteShader(name);
+        name= 0;
+    }
+    
+    virtual ~GLShader( ) {}
+    
+    static
+    GLShader *null( )
+    {
+        static GLShader object("null shader");
+        return &object;
+    }
+    
+    static GLenum types[];
+    static const char *labels[];
+};
+
+
 //! representation d'un shader program.
 //! \ingroup OpenGL.
 class GLProgram : public GLResource
@@ -63,25 +132,20 @@ protected:
     std::vector<parameter> m_uniform_buffers;
     
 public:
-    std::vector<GLuint> shaders;        //!< shaders compiles et linkes dans le program.
-    unsigned int version;               //!< si les shaders peuvent etre compiles differement (avec des #define, par exemple), permet d'identifier une combinaison particuliere.
-    unsigned int changes;               //!< compte le nombre de fois ou le program a ete recharge / linke / modifie
-    bool errors;                        //!< derniere compilation reussie ou non.
+    std::vector<GLShader *> shaders;    //! \todo inutile, remplacer par std::vector<GLuint>
     
     //! constructeur par defaut.
     GLProgram( )
         :
         GLResource(),
-        shaders(SHADERTYPE_LAST, 0),
-        version(0), changes(0), errors(false)
+        shaders(GLShader::SHADERTYPE_LAST, GLShader::null()) 
     {}
     
     //! constructuer d'un programme nomme, cf khr_debug.
     GLProgram( const std::string& _label )
         :
         GLResource(_label),
-        shaders(SHADERTYPE_LAST, 0),
-        version(0), changes(0), errors(false)
+        shaders(GLShader::SHADERTYPE_LAST, GLShader::null())
     {}
     
     //! creation d'un shader program opengl.
@@ -111,6 +175,27 @@ public:
     //! desctructeur.
     virtual ~GLProgram( ) {}
     
+    //! ajoute un shader au program.
+    int attachShader( GLShader *shader )
+    {
+        assert(shader != NULL);
+        if(name == 0)
+            return -1;
+        if(shader->type >= GLShader::SHADERTYPE_LAST)
+            return -1;
+        shaders[shader->type]= shader;
+        glAttachShader(name, shader->name);
+        return 0;
+    }
+    
+    //! renvoie un des shaders du program. \param type represente quel shader, cf les constantes GLShader::VERTEX, etc.
+    GLShader *shader( const unsigned int type )
+    {
+        if(type >= shaders.size())
+            return GLShader::null();
+        return shaders[type];
+    }
+    
     //! enumeration des ressources du programme. necessaire avant d'appeller attribute()/uniform()...
     int resources( );
     
@@ -138,53 +223,24 @@ public:
         return m_images[image.index].name.c_str();
     }
     
-    //! renvoie le ieme uniform.
-    ProgramAttribute attribute( const unsigned int id ) const 
-    {
-        return ProgramAttribute( this, m_attributes[id].location, m_attributes[id].index, 
-            m_attributes[id].size, m_attributes[id].type, m_attributes[id].flags );
-    }
-    
-    
-    //! renvoie le nombre d'uniforms
-    unsigned int uniformCount( ) const
-    {
-        return m_uniforms.size();
-    }
-    
-    //! renvoie le ieme uniform.
-    ProgramUniform uniform( const unsigned int id ) const 
-    {
-        assert((int) id == m_uniforms[id].index);
-        return ProgramUniform( this, m_uniforms[id].location, m_uniforms[id].index, 
-            m_uniforms[id].size, m_uniforms[id].type, m_uniforms[id].flags );
-    }
-    //! renvoie le ieme sampler.
-    ProgramSampler sampler( const unsigned int id ) const 
-    {
-        return ProgramSampler( this, m_samplers[id].location, m_samplers[id].index,
-            m_samplers[id].size, m_samplers[id].type, m_samplers[id].flags );
-    }
-    
     //! recherche un attribut.
     ProgramAttribute attribute( const char *name ) const;
+    
     //! recherche un uniform.
     ProgramUniform uniform( const char *name ) const;
     //! recherche un smapler.
     ProgramUniform sampler( const char *name ) const;
     //! recherche une image.
     ProgramUniform image( const char *name ) const;
-    
     //~ ProgramUniform subroutineUniform( const char *name );
-    
+
     //! recherche un uniform buffer.
     ProgramBuffer uniformBuffer( const char *name ) const;
     //! recherche un shader storage buffer.
     ProgramBuffer storageBuffer( const char *name ) const;
-    
     //~ ProgramBuffer atomicBuffer( const char *name );
-    //~ ProgramIndex subroutine( const char *name );
     
+    //~ ProgramIndex subroutine( const char *name );
     //! recherche un varying a enregistrer dans un buffer / feedback. cf glTransformFeedback.
     ProgramFeedback feedback( const char *name ) const;
     
@@ -195,21 +251,6 @@ public:
         static GLProgram object("null program");
         return &object;
     }
-    
-    //! types de shaders.
-    enum
-    {
-        VERTEX= 0,      //!< type d'un vertex shader,
-        FRAGMENT,       //!< type d'un fragment shader,
-        GEOMETRY,       //!< type d'un geometry shader,
-        CONTROL,        //!< type d'un control shader,
-        EVALUATION,     //!< type d'un evaluation shader,
-        COMPUTE,        //!< type d'un compute shader
-        SHADERTYPE_LAST
-    };
-    
-    static GLenum types[];      //!< type opengl.
-    static const char *labels[];        //!< nom d'un shader en fonction de son type.
 };
 
 

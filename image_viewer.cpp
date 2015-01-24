@@ -12,15 +12,12 @@
 #include "GL/GLBasicMesh.h"
 
 #include "Image.h"
-#include "ImageArray.h"
 #include "ImageIO.h"
-#include "ImageManager.h"
 
 
 class TP : public gk::App
 {
-    const char **m_filenames;
-    int m_count;
+    std::string m_filename;
     
     gk::GLProgram *m_program;
     gk::GLBasicMesh *m_quad;
@@ -28,10 +25,7 @@ class TP : public gk::App
     gk::GLProgram *m_color_program;
     gk::GLBasicMesh *m_plot;
     
-    gk::ImageArray *m_images;
     gk::Image *m_image;
-    int m_image_index;
-    
     gk::GLTexture *m_texture;
     gk::GLTexture *m_colors;
     gk::GLSampler *m_sampler;
@@ -47,11 +41,6 @@ class TP : public gk::App
     int m_mode;
     bool m_show_histogram;
     
-    bool m_red;
-    bool m_green;
-    bool m_blue;
-    bool m_alpha;
-    
     float m_ymin;
     float m_ymax;
     
@@ -64,10 +53,10 @@ class TP : public gk::App
     
 public:
     // creation du contexte openGL et d'une fenetre
-    TP( const char **_filenames, const int n )
+    TP( const char *_filename)
         :
         gk::App(),
-        m_filenames(_filenames), m_count(n)
+        m_filename(_filename)
     {
         // specifie le type de contexte openGL a creer :
         gk::AppSettings settings;
@@ -78,13 +67,6 @@ public:
         // cree le contexte et une fenetre
         if(createWindow(512, 512, settings) < 0)
             closeWindow();
-
-        char *path= SDL_GetBasePath();
-        if(path)
-        {
-            gk::IOFileSystem::manager().basePath(path);
-            SDL_free(path);
-        }
         
         m_widgets.init();
         m_widgets.reshape(windowWidth(), windowHeight());
@@ -106,46 +88,21 @@ public:
         m_quad= new gk::GLBasicMesh(GL_TRIANGLE_STRIP, 4);
         
         // image sur texture 0
-        m_images= new gk::ImageArray();
-        for(int i= 0; i < m_count; i++)
-        {
-            std::string file= gk::searchImage(m_filenames[i]);
-            if(gk::IOFileSystem::isFilename(file) == false)
-                continue;
-            
-            m_images->push_back( gk::readImage(file) );
-        }
-        
-        if(m_images->images.size() == 0)
+        m_image= gk::ImageIO::readImage(m_filename.c_str());
+        if(m_image == NULL)
             return -1;
-        if(m_images->images.size() == 1)
-            m_texture= gk::createTexture2D(gk::GLTexture::UNIT0, m_images->images[0], gk::TextureRGB16F);     // 3 float par pixel
-        else
-            m_texture= gk::createTexture2DArray(gk::GLTexture::UNIT0, m_images, gk::TextureRGB16F);     // 3 float par pixel
-
+        m_texture= gk::createTexture2D(gk::GLTexture::UNIT0, m_image, gk::TextureRGB32F);     // 3 float par pixel
+        
         // modifier le titre et la taille de la fenetre
-        m_image= m_images->images[0];
-        m_image_index= 0;
         resizeWindow(m_image->width, m_image->height);
-        SDL_SetWindowTitle(m_window, m_filenames[0]);
-
-        
-        //~ m_image= gk::readImage(m_filename.c_str());
-        //~ if(m_image == NULL)
-            //~ return -1;
-        //~ m_texture= gk::createTexture2D(gk::GLTexture::UNIT0, m_image, gk::TextureRGB16F);     // 3 float par pixel
-        
-        //~ // modifier le titre et la taille de la fenetre
-        //~ resizeWindow(m_image->width, m_image->height);
-        //~ SDL_SetWindowTitle(m_window, m_filename.c_str());
+        SDL_SetWindowTitle(m_window, m_filename.c_str());
         
         // fausses couleurs sur texture 1
-        //~ gk::Image *colors= gk::ImageIO::readImage("images/false_colors.png");
-        gk::Image *colors= gk::readImage("images/false_colors.png");
+        gk::Image *colors= gk::ImageIO::readImage("images/false_colors.png");
         if(colors == NULL)
             return -1;
         m_colors= gk::createTexture2D(gk::GLTexture::UNIT1, colors);
-        //~ delete colors;
+        delete colors;
         
         m_sampler= gk::createLinearSampler(GL_CLAMP_TO_BORDER);
         
@@ -162,16 +119,12 @@ public:
         m_saturation_delta= 10.f;
         m_saturation_fine= 0.f;
         m_mode= 0.f;
-        m_red= true;
-        m_green= true;
-        m_blue= true;
-        m_alpha= true;
         
         m_bins_n= 256;
         for(int i= 0; i< m_bins_n; i++)
             m_bins[i]= 0.f;
         
-        // . trouver les extremes
+        // . trouver les extremess
         float ymin= HUGE_VAL;
         float ymax= -HUGE_VAL;
         float sum= 0.f;
@@ -285,12 +238,6 @@ public:
         m_widgets.processKeyboardEvent(event);
     }
     
-    // a redefinir pour utiliser les widgets.
-    void processTextEvent( const char *string )
-    {
-        m_widgets.processTextEvent(string);
-    }
-    
     int draw( )
     {
         if(key(SDLK_ESCAPE))
@@ -310,22 +257,6 @@ public:
         {
             key('n')= 0;
             resize= true;       // redimensionne la fenetre aux dimensions de l'image
-        }
-        
-        // selectionne une nouvelle image, si possible
-        if(key(SDLK_LEFT))
-        {
-            key(SDLK_LEFT)= 0;
-            m_image_index= (m_image_index + m_count -1) % m_count;
-            m_image= m_images->images[m_image_index];
-            SDL_SetWindowTitle(m_window, m_filenames[m_image_index]);
-        }
-        if(key(SDLK_RIGHT))
-        {
-            key(SDLK_RIGHT)= 0;
-            m_image_index= (m_image_index + m_count +1) % m_count;
-            m_image= m_images->images[m_image_index];
-            SDL_SetWindowTitle(m_window, m_filenames[m_image_index]);
         }
         
         // redimensionne la fenetre, en conservant les proportions de l'image
@@ -353,11 +284,8 @@ public:
         glUseProgram(m_program->name);
 
         glActiveTexture(GL_TEXTURE0);
-        //~ glBindTexture(GL_TEXTURE_2D, m_texture->name);
-        glBindTexture(m_texture->target, m_texture->name);
-        m_program->uniform("image_index")= m_image_index;
+        glBindTexture(GL_TEXTURE_2D, m_texture->name);
         m_program->sampler("image")= 0;
-        m_program->sampler("images")= 0;
         glBindSampler(0, m_sampler->name);
         
         glActiveTexture(GL_TEXTURE1);
@@ -368,8 +296,6 @@ public:
         m_program->uniform("compression")= m_compression;
         m_program->uniform("saturation")= m_saturation + m_saturation_fine;
         m_program->uniform("heat")= (m_mode != 0) ? 1.f : 0.f;
-        
-        m_program->uniform("channels")= gk::Vec4(m_red ? 1.f : 0.f, m_green ? 1.f : 0.f, m_blue ? 1.f : 0.f, m_alpha ? 1.f : 0.f);
         
         m_quad->draw();
         
@@ -431,22 +357,9 @@ public:
             do_screenshot= false;
             
             // enregistre l'image opengl
-            gk::writeFramebuffer(gk::IOFileSystem::changeType(m_filenames[m_image_index], "_tone.png"));
+            gk::writeFramebuffer(gk::IOFileSystem::changeType(m_filename, "_tone.png"));
         }
-        
-        if(key('e'))    // enregistre l'image en exr
-        {
-            key('e')= 0;
-            gk::ImageIO::writeImage(gk::IOFileSystem::changeType(m_filenames[m_image_index], ".exr"), m_image);
-        }
-        
-        if(key('h'))    // enregistre l'image en hdr / rgbe
-        {
-            key('h')= 0;
-            gk::ImageIO::writeImage(gk::IOFileSystem::changeType(m_filenames[m_image_index], ".hdr"), m_image);
-        }
-        
-        
+
         // widgets
         m_widgets.begin();
             m_widgets.beginGroup(nv::GroupFlags_GrowDownFromLeft);
@@ -468,7 +381,7 @@ public:
                         }
                     }
                     
-                    if(m_widgets.doHorizontalSlider(nv::Rect(0,0, 200, 0), 0.f, m_saturation_max * 4.f + 10.f, &m_saturation))
+                    if(m_widgets.doHorizontalSlider(nv::Rect(0,0, 200, 0), 0.f, m_saturation_max * 4.f, &m_saturation))
                         m_saturation_fine= 0.f;
                     
                     m_widgets.doHorizontalSlider(nv::Rect(), 0.f, m_saturation_delta, &m_saturation_fine);
@@ -495,15 +408,9 @@ public:
                         m_widgets.doHorizontalSlider(nv::Rect(0,0, 200, 0), 0.f, 10.f, &m_compression);
                     }
                 m_widgets.endGroup();
-
-                m_widgets.beginGroup(nv::GroupFlags_GrowRightFromTop);
-                    if(m_widgets.doButton(nv::Rect(), "save"))
-                        do_screenshot= true;
-                    m_widgets.doCheckButton(nv::Rect(), "R", &m_red);
-                    m_widgets.doCheckButton(nv::Rect(), "G", &m_green);
-                    m_widgets.doCheckButton(nv::Rect(), "B", &m_blue);
-                    m_widgets.doCheckButton(nv::Rect(), "A", &m_alpha);
-                m_widgets.endGroup();
+                    
+                if(m_widgets.doButton(nv::Rect(), "save"))
+                    do_screenshot= true;
             m_widgets.endGroup();
         m_widgets.end();
         
@@ -512,15 +419,15 @@ public:
     }
 };
 
-int main( int argc, const char **argv )
+int main( int argc, char **argv )
 {
-    if(argc < 2)
+    if(argc != 2)
     {
         printf("usage: %s .bmp .png .jpg .tga .exr .hdr\n\n", argv[0]);
         return 1;
     }
     
-    TP app(argv +1, argc -1);
+    TP app(argv[1]);
     app.run();
     
     return 0;

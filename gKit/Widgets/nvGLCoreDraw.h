@@ -66,7 +66,6 @@ protected:
     std::vector<buffer> m_buffers;
     std::vector<P> m_draws;
     unsigned int m_buffer_id;
-    unsigned int m_restart_index;
     
 public:
     Draw( )
@@ -101,8 +100,6 @@ public:
         glBindVertexArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        
-        m_restart_index= 0xffffffff;
     }
     
     ~Draw( )
@@ -116,7 +113,7 @@ public:
     {
         m_vertex= vertex();
         
-        // sort states, improve batching but "kills" z order rendering
+        // sort states
         unsigned int i= 0;
         for(; i < m_draws.size(); i++)
             if(m_draws[i] == params)
@@ -139,7 +136,7 @@ public:
     {
         if(m_buffer_id == -1u)
             return;
-        m_buffers[m_buffer_id].index.push_back(m_restart_index);    // restart index 
+        m_buffers[m_buffer_id].index.push_back(0xffff);    // restart index 
         m_draws[m_buffer_id].end= m_buffers[m_buffer_id].index.size();
         
         m_buffer_id= -1u;       // draw between begin() / end() calls
@@ -156,13 +153,13 @@ public:
     void reshape( const Rect& window )
     {
         const float left= window.x;
-        const float right= window.x + window.w;
+        const float right= window.w;
         const float bottom= window.y;
-        const float top= window.y + window.h;
+        const float top= window.h;
         const float znear= -1.f;
         const float zfar= 1.f;
         
-        //! \todo utiliser gk::Mat4 de Vec.h
+	    //! \todo utiliser gk::Mat4 de Vec.h
         m_projection= gk::glsl::matrix(
             gk::glsl::vec4(2.f / (right - left)     , 0.f                 , 0.f                  , -(right + left) / (right - left)),
             gk::glsl::vec4(0.f                      , 2.f / (top - bottom), 0.f                  , -(top + bottom) / (top - bottom)),
@@ -198,7 +195,7 @@ public:
     {
         if(m_buffer_id == -1u)
             return;
-        m_buffers[m_buffer_id].index.push_back(m_restart_index);    // restart index 
+        m_buffers[m_buffer_id].index.push_back(0xffff);    // restart index 
     }
     
     void draw( )
@@ -206,7 +203,6 @@ public:
         if(m_buffer_id != -1u)
             return;     // must call end() before draw()
         
-        // organise buffer data
         unsigned int index_size= 0;
         unsigned int data_size= 0;
         for(unsigned int i= 0; i < m_buffers.size(); i++)
@@ -222,11 +218,6 @@ public:
         glBindVertexArray(0);
         
         // resize vertex buffer when necessary
-        /*! \todo implement efficient buffer streaming :
-            cf. https://developer.nvidia.com/content/how-modern-opengl-can-radically-reduce-driver-overhead-0
-            and 
-            https://github.com/nvMcJohn/apitest/blob/pdoane_newtests/streaming_vb_gl.cpp
-        */
         GLint buffer_size;
         glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
         glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &buffer_size);
@@ -252,10 +243,9 @@ public:
                 (const GLvoid *) &m_buffers[i].index.front());
 
         // draw states
+        glPrimitiveRestartIndex(0xffff);
+        glEnable(GL_PRIMITIVE_RESTART);
         glBindVertexArray(m_vao);
-
-        glPrimitiveRestartIndex(m_restart_index);
-        glEnable(GL_PRIMITIVE_RESTART); 
         
         const void *program= NULL;
         //~ printf("widgets batchs %lu\n", m_draws.size());

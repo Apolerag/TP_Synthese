@@ -6,7 +6,7 @@
 
 namespace gk {
 
-GLenum GLProgram::types[]= {
+GLenum GLShader::types[]= {
     GL_VERTEX_SHADER,
     GL_FRAGMENT_SHADER,
     GL_GEOMETRY_SHADER,
@@ -16,7 +16,7 @@ GLenum GLProgram::types[]= {
     0
 };
 
-const char *GLProgram::labels[]= {
+const char *GLShader::labels[]= {
     "vertex",
     "fragment",
     "geometry",
@@ -26,6 +26,201 @@ const char *GLProgram::labels[]= {
     ""
 };
 
+
+static
+bool is_sampler( const GLenum type )
+{
+    switch(type)
+    {
+        case  GL_SAMPLER_1D:
+        case  GL_SAMPLER_2D:
+        case  GL_SAMPLER_3D:
+        case  GL_SAMPLER_CUBE:
+        case  GL_SAMPLER_1D_SHADOW:
+        case  GL_SAMPLER_2D_SHADOW:
+        
+    #ifdef GL_VERSION_3_0
+        case  GL_SAMPLER_1D_ARRAY:
+        case  GL_SAMPLER_2D_ARRAY:
+        case  GL_SAMPLER_1D_ARRAY_SHADOW:
+        case  GL_SAMPLER_2D_ARRAY_SHADOW:
+        case  GL_SAMPLER_CUBE_SHADOW:
+        case  GL_INT_SAMPLER_1D:
+        case  GL_INT_SAMPLER_2D:
+        case  GL_INT_SAMPLER_3D:
+        case  GL_INT_SAMPLER_CUBE:
+        case  GL_INT_SAMPLER_1D_ARRAY:
+        case  GL_INT_SAMPLER_2D_ARRAY:
+        case  GL_UNSIGNED_INT_SAMPLER_1D:
+        case  GL_UNSIGNED_INT_SAMPLER_2D:
+        case  GL_UNSIGNED_INT_SAMPLER_3D:
+        case  GL_UNSIGNED_INT_SAMPLER_CUBE:
+        case  GL_UNSIGNED_INT_SAMPLER_1D_ARRAY:
+        case  GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
+    #endif
+    
+    #ifdef GL_VERSION_3_1
+        case  GL_SAMPLER_2D_RECT:
+        case  GL_SAMPLER_2D_RECT_SHADOW:
+        case GL_SAMPLER_BUFFER:
+        case GL_INT_SAMPLER_2D_RECT:
+        case GL_INT_SAMPLER_BUFFER:
+        case GL_UNSIGNED_INT_SAMPLER_2D_RECT:
+        case GL_UNSIGNED_INT_SAMPLER_BUFFER:
+    #endif
+    
+    #ifdef GL_VERSION_4_0
+        case GL_SAMPLER_CUBE_MAP_ARRAY:
+        case GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW:
+        case GL_INT_SAMPLER_CUBE_MAP_ARRAY:
+        case GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY:
+    #endif
+    
+    #ifdef GL_ARB_texture_multisample
+        case GL_SAMPLER_2D_MULTISAMPLE:
+        case GL_INT_SAMPLER_2D_MULTISAMPLE:
+        case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE:
+        case GL_SAMPLER_2D_MULTISAMPLE_ARRAY:
+        case GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
+        case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
+    #endif
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+static
+bool is_image( const GLenum type )
+{
+    switch(type)
+    {
+        #ifdef GL_ARB_shader_image_load_store
+        case  GL_IMAGE_1D:
+        case  GL_IMAGE_2D:
+        case  GL_IMAGE_3D:
+        case  GL_IMAGE_2D_RECT:
+        case  GL_IMAGE_CUBE:
+        case  GL_IMAGE_BUFFER:
+        case  GL_IMAGE_1D_ARRAY:
+        case  GL_IMAGE_2D_ARRAY:
+        case  GL_IMAGE_CUBE_MAP_ARRAY:
+        case  GL_IMAGE_2D_MULTISAMPLE:
+        case  GL_IMAGE_2D_MULTISAMPLE_ARRAY:
+        case  GL_INT_IMAGE_1D:
+        case  GL_INT_IMAGE_2D:
+        case  GL_INT_IMAGE_3D:
+        case  GL_INT_IMAGE_2D_RECT:
+        case  GL_INT_IMAGE_CUBE:
+        case  GL_INT_IMAGE_BUFFER:
+        case  GL_INT_IMAGE_1D_ARRAY:
+        case  GL_INT_IMAGE_2D_ARRAY:
+        case  GL_INT_IMAGE_CUBE_MAP_ARRAY:
+        case  GL_INT_IMAGE_2D_MULTISAMPLE:
+        case  GL_INT_IMAGE_2D_MULTISAMPLE_ARRAY:
+        case  GL_UNSIGNED_INT_IMAGE_1D:
+        case  GL_UNSIGNED_INT_IMAGE_2D:
+        case  GL_UNSIGNED_INT_IMAGE_3D:
+        case  GL_UNSIGNED_INT_IMAGE_2D_RECT:
+        case  GL_UNSIGNED_INT_IMAGE_CUBE:
+        case  GL_UNSIGNED_INT_IMAGE_BUFFER:
+        case  GL_UNSIGNED_INT_IMAGE_1D_ARRAY:
+        case  GL_UNSIGNED_INT_IMAGE_2D_ARRAY:
+        case  GL_UNSIGNED_INT_IMAGE_CUBE_MAP_ARRAY:
+        case  GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE:
+        case  GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY:
+            return true;
+        #endif
+        
+        default: 
+            return false;
+    }
+}
+
+
+static
+bool is_integer( const GLenum type )
+{
+    switch(type)
+    {
+        case GL_BOOL:
+        case GL_BOOL_VEC2:
+        case GL_BOOL_VEC3:
+        case GL_BOOL_VEC4:
+        case GL_INT:
+        case GL_INT_VEC2:
+        case GL_INT_VEC3:
+        case GL_INT_VEC4:
+        case GL_UNSIGNED_INT:
+        case GL_UNSIGNED_INT_VEC2:
+        case GL_UNSIGNED_INT_VEC3: 
+        case GL_UNSIGNED_INT_VEC4:
+            return true;
+        
+        default:
+            return false;
+    }
+}
+
+static
+bool is_matrix( const GLenum type )
+{
+    switch(type)
+    {
+        case GL_FLOAT_MAT2:
+        case GL_FLOAT_MAT2x3:
+        case GL_FLOAT_MAT2x4:
+        case GL_FLOAT_MAT3:
+        case GL_FLOAT_MAT3x2:
+        case GL_FLOAT_MAT3x4:
+        case GL_FLOAT_MAT4:
+        case GL_FLOAT_MAT4x2:
+        case GL_FLOAT_MAT4x3:
+            return true;
+        
+        default:
+            return false;
+    }    
+}
+
+
+static
+const char *type_string( const GLenum value )
+{
+#define type(v, s) case v: return s;
+    
+    switch(value)
+    {
+        type(GL_FLOAT, "float")
+        type(GL_FLOAT_VEC2, "vec2")
+        type(GL_FLOAT_VEC3, "vec3")
+        type(GL_FLOAT_VEC4, "vec4")
+        
+        type(GL_UNSIGNED_INT, "uint")
+        type(GL_UNSIGNED_INT_VEC2, "uvec2")
+        type(GL_UNSIGNED_INT_VEC3, "uvec3")
+        type(GL_UNSIGNED_INT_VEC4, "uvec4")
+        
+        type(GL_INT, "int")
+        type(GL_INT_VEC2, "ivec2")
+        type(GL_INT_VEC3, "ivec3")
+        type(GL_INT_VEC4, "ivec4")
+        
+        type(GL_BOOL, "bool")
+        type(GL_BOOL_VEC2, "bvec2")
+        type(GL_BOOL_VEC3, "bvec3")
+        type(GL_BOOL_VEC4, "bvec4")
+        
+        type(GL_FLOAT_MAT2, "mat2")
+        type(GL_FLOAT_MAT3, "mat3")
+        type(GL_FLOAT_MAT4, "mat4")
+        
+        default: return NULL;
+    }
+    
+#undef type
+}
 
 int GLProgram::resources( )
 {
@@ -57,7 +252,7 @@ int GLProgram::resources( )
             glGetActiveUniform(name, i, max_length +1, NULL, &size, &type, uname);
             GLint location= glGetUniformLocation(name, uname);
             
-            if(glsl::is_sampler(type))
+            if(is_sampler(type))
             {
                 MESSAGE("  sampler '%s' location %d, index %d, size %d, type 0x%x\n", 
                     uname, location, unit_id, size, type );
@@ -66,7 +261,7 @@ int GLProgram::resources( )
                     parameter(uname, location, unit_id, size, type, 1 << ProgramName::SAMPLER) );
                 unit_id++;
             }
-            else if(glsl::is_image(type))
+            else if(is_image(type))
             {
                 MESSAGE("  image '%s' location %d, index %d, size %d, type 0x%x\n", 
                     uname, location, unit_id, size, type );
@@ -79,7 +274,7 @@ int GLProgram::resources( )
             {
                 if(location >= 0)
                 {
-                    const char *string= glsl::type_string(type);
+                    const char *string= type_string(type);
                     if(string != NULL)
                         // ne pas afficher les uniforms non modifiables par glProgramUniform(); / program->uniform("xxx")= xxx;
                         MESSAGE("  uniform '%s' location %d, index %d, size %d, type '%s'\n", 
@@ -90,18 +285,10 @@ int GLProgram::resources( )
                         
                 }
                 
-                /*! \todo si location < 0, pas la peine de conserver l'uniform, sa valeur ne peut pas etre fixee par glProgramUniform, il fait parti du pipeline fixe, ou d'un buffer...
-                    mais ils sont references par les uniforms buffers...
-                */
-                //! \todo gestion des tableaux...
+                //! \todo si location < 0, pas la peine de conserver l'uniform, sa valeur ne peut pas etre fixee par glProgramUniform, il fait parti du pipeline fixe, ou d'un buffer...
+                //! mais ils sont references par les uniforms buffers...
                 m_uniforms.push_back( 
-                    parameter(uname, location, m_uniforms.size(), size, type, 
-                        (1 << ProgramName::UNIFORM)
-                        | (glsl::is_integer(type) ? 1 << ProgramName::INTEGER : 0)
-                        | (glsl::is_vec2(type) ? 1 << ProgramName::VEC2 : 0)
-                        | (glsl::is_vec3(type) ? 1 << ProgramName::VEC3 : 0)
-                        | (glsl::is_vec4(type) ? 1 << ProgramName::VEC4 : 0) 
-                        | (glsl::is_matrix(type) ? 1 << ProgramName::MAT4 : 0) ));
+                    parameter(uname, location, m_uniforms.size(), size, type, is_integer(type) ? 1 << ProgramName::INTEGER : 1 << ProgramName::UNIFORM) );
             }
         }
         
@@ -127,7 +314,7 @@ int GLProgram::resources( )
             
             if(location >= 0)
             {
-                const char *string= glsl::type_string(type);
+                const char *string= type_string(type);
                 if(string != NULL)
                     MESSAGE("  attribute '%s' location %d, index %d, size %d, type '%s'\n", 
                         aname, location, i, size, string);
@@ -137,7 +324,7 @@ int GLProgram::resources( )
             }
             
             m_attributes.push_back( 
-                parameter(aname, location, i, size, type, glsl::is_integer(type)) );
+                parameter(aname, location, i, size, type, is_integer(type)) );
         }
         
         delete [] aname;
@@ -166,14 +353,14 @@ int GLProgram::resources( )
             fname[0]= 0;            
             glGetTransformFeedbackVarying(name, i, max_length +1, NULL, &size, &type, fname);
             
-            const char *string= glsl::type_string(type);
+            const char *string= type_string(type);
             if(string != NULL)
                 MESSAGE("  feedback '%s' index %d, size %d, type '%s', buffer %d\n", fname, i, size, string, buffer_id);
             else
                 MESSAGE("  feedback '%s' index %d, size %d, type 0x%x, buffer %d\n", fname, i, size, type, buffer_id);
             
             m_feedbacks.push_back( 
-                parameter(fname, -1, buffer_id, size, type, glsl::is_integer(type)) );
+                parameter(fname, -1, buffer_id, size, type, is_integer(type)) );
             
             // determiner dans quel buffer le feedback sera stocke
             if(buffer_mode == GL_SEPARATE_ATTRIBS)
@@ -223,7 +410,6 @@ int GLProgram::resources( )
     
     #ifdef GK_OPENGL4
     // recupere les shader storage buffers, opengl >= 4.2 + arb_shader_storage_buffer
-    // introspection opengl >= 4.3
     GLint buffer_count= 0;
     glGetProgramInterfaceiv(name, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &buffer_count);
     if(buffer_count > 0)
@@ -234,14 +420,7 @@ int GLProgram::resources( )
         for(int i= 0; i < buffer_count; i++)
         {
             glGetProgramResourceName(name, GL_SHADER_STORAGE_BLOCK, i, max_length, NULL, bname);
-            
-            GLint binding= 0;
-            {
-                GLenum prop[]= { GL_BUFFER_BINDING };
-                glGetProgramResourceiv(name, GL_SHADER_STORAGE_BLOCK, i, 1, prop, 1, NULL, &binding);
-            }
-    
-            MESSAGE("  buffer '%s' index %d, binding %d\n", bname, i, binding);
+            MESSAGE("  buffer '%s' index %d\n", bname, i);
             
             m_storage_buffers.push_back( 
                 parameter(bname, -1, i, GL_SHADER_STORAGE_BLOCK) );
@@ -252,10 +431,10 @@ int GLProgram::resources( )
                 glGetProgramResourceiv(name, GL_SHADER_STORAGE_BLOCK, i, 1, prop, 1, NULL, &vcount);
             }
         
-            std::vector<GLint> variables(vcount);
+            GLint variables[vcount];
             {
                 GLenum prop[]= { GL_ACTIVE_VARIABLES };
-                glGetProgramResourceiv(name, GL_SHADER_STORAGE_BLOCK, i, 1, prop, vcount, NULL, &variables.front());
+                glGetProgramResourceiv(name, GL_SHADER_STORAGE_BLOCK, i, 1, prop, vcount, NULL, variables);
             }
             
             GLchar vname[128]= { 0 };
@@ -267,7 +446,7 @@ int GLProgram::resources( )
                 glGetProgramResourceiv(name, GL_BUFFER_VARIABLE, variables[k], sizeof(props) / sizeof(GLenum), props, sizeof(params) / sizeof(GLenum), NULL, params);
                 glGetProgramResourceName(name, GL_BUFFER_VARIABLE, variables[k], sizeof(vname), NULL, vname);
                 
-                const char *string= glsl::type_string(params[1]);
+                const char *string= type_string(params[1]);
                 if(string != NULL)
                     MESSAGE("    '%s' offset %d type '%s', array stride %d, top level stride %d",
                         vname, params[0], string, params[2], params[5]);
@@ -275,7 +454,7 @@ int GLProgram::resources( )
                     MESSAGE("    '%s' offset %d type 0x%x, array stride %d, top level stride %d",
                         vname, params[0], params[1], params[2], params[5]);
                     
-                if(glsl::is_matrix(params[1]))
+                if(is_matrix(params[1]))
                     MESSAGE(" row major %d, matrix stride %d",params[4], params[3]);
                 MESSAGE("\n");
             }
@@ -284,7 +463,7 @@ int GLProgram::resources( )
         delete [] bname;
     }
 
-    if(shaders[COMPUTE] != 0)
+    if(shaders[GLShader::COMPUTE] != GLShader::null())
     {
         GLint group_size[3];
         glGetProgramiv(name, GL_COMPUTE_WORK_GROUP_SIZE, group_size);
@@ -297,14 +476,14 @@ int GLProgram::resources( )
         GLint threads;
         glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &threads);
         
-        MESSAGE("  compute shader group size %dx%dx%d %d threads (max %dx%dx%d %d threads)\n", 
+        MESSAGE("  compute shader group size %d %d %d, %d (max %d %d %d, %d)\n", 
             group_size[0], group_size[1], group_size[2], group_size[0] * group_size[1] * group_size[2], 
             group_max[0], group_max[1], group_max[2], threads);
     }
     #endif
+
 #endif
 
-    changes++;   // nombre de fois ou le programme a ete recharge / linke / modifie
     return 0;
 }
 

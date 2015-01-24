@@ -88,7 +88,7 @@ public:
     //! creation, activation et configuration d'un framebuffer de dimensions width * height. 
     //! les textures designees par buffer_bits sont crees et attachees au framebuffer. 
     //! les textures couleurs sont crees avec le format color_format et la texture de profondeur est cree avec le format depth_format.
-    //! \param buffer_bits est une combinaison des flags COLOR0_BIT | COLOR1_BIT | DEPTH_BIT, etc.
+    //! \param buffer_bits est une combinaison des flags COLOR0_BIT |Â COLOR1_BIT | DEPTH_BIT, etc.
     GLFramebuffer *create( const GLenum _target, const int _width, const int _height, const unsigned int buffer_bits, 
         const TextureFormat& color_format= TextureRGBA, const TextureFormat& depth_format= TextureDepth )
     {
@@ -108,17 +108,16 @@ public:
             buffers[i]= color;
             
             glFramebufferTexture(_target, GL_COLOR_ATTACHMENT0 + i, color->name, 0);
-            glBindTexture(color->target, 0);
         }
         
         if(buffer_bits & DEPTH_BIT)
         {
             depth_buffer= (new GLTexture())->createTexture2D(GLTexture::UNIT0, width, height, depth_format);
-            
             glFramebufferTexture(_target, GL_DEPTH_ATTACHMENT, depth_buffer->name, 0);
-            glBindTexture(depth_buffer->target, 0);
         }
         
+        // desactive la texture active.
+        glBindTexture(GL_TEXTURE_2D, 0);
         return this;
     }
     

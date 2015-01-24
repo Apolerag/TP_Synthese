@@ -1,15 +1,15 @@
 /*
-exemple de compute shader : transformation des sommets d'un maillage
+exemple de compute shader
 
-etape 1 :
+etape 1:
 le compute shader applique une transformation model view projection a chaque sommet d'un maillage.
 entree: les positions des sommets
 sortie: les positions transformees
 
-etape 2 :
+etape 2:
 affichage du maillage transforme.
 
-remarque : ca n'a aucun interet pratique, c'est un exemple.
+remarque: ca n'a aucun interet pratique, c'est juste un exemple simple.
 */
 
 

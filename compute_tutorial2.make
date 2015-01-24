@@ -23,15 +23,15 @@ ifeq ($(config),debug)
   OBJDIR     = obj/debug/compute_tutorial2
   TARGETDIR  = .
   TARGET     = $(TARGETDIR)/compute_tutorial2
-  DEFINES   += -DGK_OPENGL4 -DVERBOSE -DDEBUG
-  INCLUDES  += -I. -IgKit -Ilocal/linux32/include
+  DEFINES   += -DGK_OPENGL4 -DVERBOSE -DDEBUG -DGK_OPENEXR
+  INCLUDES  += -I. -IgKit -Ilocal/linux/include -I/usr/include/OpenEXR
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -g -mtune=native -W -Wall -Wno-unused-parameter -pipe -mtune=native -Og
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -g -W -Wall -Wextra -Wno-unused-parameter -pipe
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L. -Llocal/linux32/lib -Wl,-rpath,local/linux32/lib
+  ALL_LDFLAGS   += $(LDFLAGS) -L. -Llocal/linux/lib -Wl,-rpath,local/linux/lib
   LDDEPS    +=
-  LIBS      += $(LDDEPS) -lGLEW -lSDL2 -lSDL2_image -lSDL2_ttf -lGL
+  LIBS      += $(LDDEPS) -lIlmImf -lIlmThread -lImath -lHalf -lGLEW -lSDL2 -lSDL2_image -lSDL2_ttf -lGL
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -45,15 +45,15 @@ ifeq ($(config),release)
   OBJDIR     = obj/release/compute_tutorial2
   TARGETDIR  = .
   TARGET     = $(TARGETDIR)/compute_tutorial2
-  DEFINES   += -DGK_OPENGL4 -DVERBOSE
-  INCLUDES  += -I. -IgKit -Ilocal/linux32/include
+  DEFINES   += -DGK_OPENGL4 -DVERBOSE -DGK_OPENEXR
+  INCLUDES  += -I. -IgKit -Ilocal/linux/include -I/usr/include/OpenEXR
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O3 -mtune=native -W -Wall -Wno-unused-parameter -pipe
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O3 -W -Wall -Wextra -Wno-unused-parameter -pipe -mtune=native
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L. -s -Llocal/linux32/lib -Wl,-rpath,local/linux32/lib
+  ALL_LDFLAGS   += $(LDFLAGS) -L. -s -Llocal/linux/lib -Wl,-rpath,local/linux/lib
   LDDEPS    +=
-  LIBS      += $(LDDEPS) -lGLEW -lSDL2 -lSDL2_image -lSDL2_ttf -lGL
+  LIBS      += $(LDDEPS) -lIlmImf -lIlmThread -lImath -lHalf -lGLEW -lSDL2 -lSDL2_image -lSDL2_ttf -lGL
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -66,26 +66,17 @@ endif
 OBJECTS := \
 	$(OBJDIR)/Logger.o \
 	$(OBJDIR)/Transform.o \
-	$(OBJDIR)/QuadMesh.o \
 	$(OBJDIR)/ImageManager.o \
 	$(OBJDIR)/MeshIO.o \
 	$(OBJDIR)/ImageIO.o \
-	$(OBJDIR)/Image.o \
 	$(OBJDIR)/rgbe.o \
 	$(OBJDIR)/ProgramManager.o \
 	$(OBJDIR)/Geometry.o \
-	$(OBJDIR)/MeshData.o \
-	$(OBJDIR)/ProgramTweaks.o \
-	$(OBJDIR)/ImageArray.o \
 	$(OBJDIR)/App.o \
-	$(OBJDIR)/OrbiterIO.o \
 	$(OBJDIR)/GLProgram.o \
 	$(OBJDIR)/GLBasicMesh.o \
 	$(OBJDIR)/GLTexture.o \
 	$(OBJDIR)/ProgramName.o \
-	$(OBJDIR)/GLQuery.o \
-	$(OBJDIR)/GLProgramUniforms.o \
-	$(OBJDIR)/GLBasicMaterial.o \
 	$(OBJDIR)/GLCompiler.o \
 	$(OBJDIR)/nvSDLContext.o \
 	$(OBJDIR)/nvPainter.o \
@@ -161,10 +152,6 @@ $(OBJDIR)/Transform.o: gKit/Transform.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/QuadMesh.o: gKit/QuadMesh.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
 $(OBJDIR)/ImageManager.o: gKit/ImageManager.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
@@ -174,10 +161,6 @@ $(OBJDIR)/MeshIO.o: gKit/MeshIO.cpp
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
 $(OBJDIR)/ImageIO.o: gKit/ImageIO.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/Image.o: gKit/Image.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
@@ -193,23 +176,7 @@ $(OBJDIR)/Geometry.o: gKit/Geometry.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/MeshData.o: gKit/MeshData.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/ProgramTweaks.o: gKit/ProgramTweaks.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/ImageArray.o: gKit/ImageArray.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
 $(OBJDIR)/App.o: gKit/App.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/OrbiterIO.o: gKit/OrbiterIO.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
@@ -226,18 +193,6 @@ $(OBJDIR)/GLTexture.o: gKit/GL/GLTexture.cpp
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
 $(OBJDIR)/ProgramName.o: gKit/GL/ProgramName.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/GLQuery.o: gKit/GL/GLQuery.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/GLProgramUniforms.o: gKit/GL/GLProgramUniforms.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/GLBasicMaterial.o: gKit/GL/GLBasicMaterial.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 

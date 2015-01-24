@@ -2,24 +2,22 @@
 #ifndef _GK_GLPLATFORM_H
 #define _GK_GLPLATFORM_H
 
-#define GLEW_NO_GLU
-
 #ifdef APPLE_OSX
     #include <GL/glew.h>
-//    #include <OpenGL/gl.h>
+    #include <OpenGL/gl.h>
 
 #elif defined WIN32
     #include <GL/glew.h>
-//    #include <GL/gl.h>
+    #include <GL/gl.h>
 
 #else
     #include "GL/glew.h"
-//    #include <GL/gl.h>
+    #include <GL/gl.h>
 #endif
 
 #ifdef GLDEBUGGER    
-    //~ #include "Debugger/GLDebugger.h"
-    //~ #include "Debugger/AppDebugger.h"
+    #include "Debugger/GLDebugger.h"
+    #include "Debugger/AppDebugger.h"
     
     #define glDrawArrays(...) gk::AppDebugger::drawArrays(  __VA_ARGS__ )
     #define glDrawElements(...) gk::AppDebugger::.drawElements(  __VA_ARGS__ )

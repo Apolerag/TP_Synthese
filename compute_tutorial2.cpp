@@ -1,15 +1,3 @@
-/*
-exemple de compute shader : intersections rayons / triangles.
-
-etape 1 :
-le compute shader calcule l'intersection de chaque rayon associe a un pixel de l'image avec l'ensemble des triangles d'un maillage
-entree : les triangles
-sortie : pour chaque rayon / pixel, la couleur du triangle le plus proche de la camera
-
-etape 2 :
-affiche le resultat 
-*/
-
 
 #include "App.h"
 #include "Widgets/nvSDLContext.h"
@@ -157,6 +145,7 @@ public:
         
         input= gk::createBuffer(GL_SHADER_STORAGE_BUFFER, triangles);
         
+        //~ output= gk::createTexture2D(gk::GLTexture::UNIT0, windowWidth(), windowHeight(), gk::TextureRGBA);
         framebuffer= gk::createFramebuffer(GL_READ_FRAMEBUFFER, windowWidth(), windowHeight(), gk::GLFramebuffer::COLOR0_BIT, gk::TextureRGBA);
         output= framebuffer->texture(gk::GLFramebuffer::COLOR0);
         
@@ -232,6 +221,7 @@ public:
         glGetProgramiv(program->name, GL_COMPUTE_WORK_GROUP_SIZE, group_size);
         
         glDispatchCompute(output->width / group_size[0], output->height / group_size[1], 1);   // groupe 16x16 = 256 threads
+        //~ glDispatchCompute(output->width / 16, output->height / 16, 1);   // groupe 16x16 = 256 threads
         
         // mesurer le temps d'execution
         GLint64 stop; glGetInteger64v(GL_TIMESTAMP, &stop);     // nano secondes

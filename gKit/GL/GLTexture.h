@@ -38,8 +38,6 @@ struct TextureFormat
     {}
 };
 
-extern TextureFormat TextureBGRA;
-
 extern TextureFormat TextureRGBA;
 extern TextureFormat TextureRGB16F;
 extern TextureFormat TextureRGBA16F;
@@ -62,8 +60,6 @@ extern TextureFormat TextureR32I;
 
 extern TextureFormat TextureRGBA_MS4;
 extern TextureFormat TextureDepth_MS4;
-extern TextureFormat TextureRGBA_MS8;
-extern TextureFormat TextureDepth_MS8;
 
 class Image;
 class ImageArray;
@@ -94,7 +90,7 @@ public:
     int depth;                  //!< profondeur ou 1.
 
     //! constructeur par defaut.
-    GLTexture( ) : GLResource( ), format(), target(GL_TEXTURE_2D), width(0), height(0), depth(0)  {}
+    GLTexture( ) : GLResource( ), format(), target(0), width(0), height(0), depth(0)  {}
     //! constructeur d'une texture nommee, cf khr_debug.
     GLTexture( const char *_label ) : GLResource(_label), format(), target(0), width(0), height(0), depth(0) {}
     
@@ -110,28 +106,6 @@ public:
         if(name == 0)
             return this;
         
-        format= _format;
-        target= _target;
-        width= _width;
-        height= _height;
-        depth= _depth;
-        manage();
-        
-        glActiveTexture(GL_TEXTURE0 + _unit);
-        glBindTexture(target, name);
-        
-        return this;
-    }
-    
-    //! utilisation exeperimentale. construit un objet GLTexture a partir d'une texture opengl deja cree.
-    GLTexture *attach( const int _unit, 
-        const GLenum _target, GLuint _name, const int _width, const int _height, const int _depth, const TextureFormat& _format )
-    {
-        assert(name == 0 && "texture creation error");
-        if(_name == 0)
-            return this;
-        
-        name= _name;
         format= _format;
         target= _target;
         width= _width;
@@ -174,8 +148,6 @@ public:
     //! creation d'une texture 3d, vide.
     GLTexture *createTexture3D( const int _unit, 
         const int _width, const int _height, const int _depth, const TextureFormat& _format= TextureRGBA );
-    //! creation d'une texture 3d, avec le contenu d'une image multi couche.
-    GLTexture *createTexture3D( const int _unit, Image *image, const TextureFormat& _format= TextureRGBA );
     //! creation d'une texture 3d, avec le contenu des images.
     GLTexture *createTexture3D( const int _unit, ImageArray *array, const TextureFormat& _format= TextureRGBA );
     
@@ -224,14 +196,6 @@ GLTexture *createTextureCube( const int unit, ImageArray *array, const TextureFo
 {
     //! \todo nommer les textures avec leur filename
     return (new GLTexture())->createTextureCube(unit, array, format);
-}
-
-//! \ingroup OpenGL.
-inline
-GLTexture *createTexture3D( const int unit, Image *image, const TextureFormat& format= TextureRGBA )
-{
-    //! \todo nommer les textures avec leur filename
-    return (new GLTexture())->createTexture3D(unit, image, format);
 }
 
 //! enregistre le framebuffer.

@@ -1,5 +1,6 @@
 
 
+
 #include "App.h"
 #include "Widgets/nvSDLContext.h"
 
@@ -34,13 +35,11 @@ class Batch : public gk::App
     gk::GLProgram *m_program[2];
     gk::GLBasicMesh *m_mesh[4];
     gk::GLVertexArray *m_vao;
-    gk::GLBuffer *m_indirect;
-    DrawElementsIndirect *m_indirect_storage;
     
     gk::GLQuery *m_time;
     
     std::vector<int> m_cpu_graph;
-    //~ std::vector<DrawElementsIndirect> m_elements_indirect;
+    std::vector<DrawElementsIndirect> m_elements_indirect;
     
     float m_scale;
     int m_draw_count;
@@ -151,16 +150,6 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         
-        // multi draw indirect storage buffer
-        m_indirect= gk::createBufferStorage(GL_DRAW_INDIRECT_BUFFER, 
-            10000u*sizeof(DrawElementsIndirect), NULL, 
-            GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT | GL_CLIENT_STORAGE_BIT);
-        // persistant map : eviter mapRange() / unmap()
-        m_indirect_storage= (DrawElementsIndirect *) m_indirect->mapRange(GL_DRAW_INDIRECT_BUFFER, 
-            GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
-        if(m_indirect_storage == NULL)
-            return -1;
-        
         m_time= gk::createTimeQuery();
         
         //
@@ -218,7 +207,6 @@ public:
         
         m_time->begin();
         GLint64 start; glGetInteger64v(GL_TIMESTAMP, &start);
-        //~ GLint64 start= 0;
         
         int program_id= 0;
         int mesh_id= 0;
@@ -236,28 +224,12 @@ public:
             m_program[program_id]->uniform("normalMatrix")= mv.normalMatrix();
             m_program[program_id]->uniform("color")= gk::Vec4(1.f, 1.f, 1.f);            
             
-            GLint64 start; glGetInteger64v(GL_TIMESTAMP, &start);
             DrawElementsIndirect draw(m_mesh[mesh_id]->count);
+            m_elements_indirect.assign(m_draw_count, draw);
             
-            // construit les draws directement dans le buffer indrect
-            assert(m_draw_count <= 10000);
-            for(int i= 0; i < m_draw_count; i++)
-                m_indirect_storage[i]= draw;
-            
-            // attendre que les donnees soient transferees
-            glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
-            
-            GLint64 stop; glGetInteger64v(GL_TIMESTAMP, &stop);
-            int cpu_time= (stop - start);
-            //~ printf("multi draw cpu time % 6dus  ", cpu_time / 1000);
-            
-            if(m_draw_degenerate)
-                mesh_id= (mesh_id + 2) % 4;
             glBindVertexArray(m_mesh[mesh_id]->vao->name);
-            
-            // draw !
             glMultiDrawElementsIndirect(m_mesh[mesh_id]->primitive, m_mesh[mesh_id]->index_type, 
-                0, m_draw_count, sizeof(DrawElementsIndirect));
+                &m_elements_indirect.front(), m_elements_indirect.size(), sizeof(DrawElementsIndirect));
         }
         else
         {
@@ -335,13 +307,11 @@ public:
         glUseProgram(0);
         glBindVertexArray(0);
         
-        m_time->end();
-        int gpu_time= m_time->result64();
-        //~ int gpu_time= 0;
-
-        //~ GLint64 stop= 0;
         GLint64 stop; glGetInteger64v(GL_TIMESTAMP, &stop);
+
+        m_time->end();
         int cpu_time= (stop - start);
+        int gpu_time= m_time->result64();
         
         if(m_cpu_graph.size() >= 100)
             m_cpu_graph.erase(m_cpu_graph.begin());     // argh !!
@@ -351,6 +321,9 @@ public:
         for(unsigned int i= 0; i < m_cpu_graph.size(); i++)
             cpu_average+= m_cpu_graph[i];
         cpu_average/= (int) m_cpu_graph.size();
+        
+        // 
+        //~ glFinish(); 
         
         char tmp[1024];
         m_widgets.begin();

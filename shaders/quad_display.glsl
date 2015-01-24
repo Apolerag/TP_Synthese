@@ -28,7 +28,7 @@
         //~ count+= imageLoad(overdraw, quad * 2 + ivec2(0, 1));
         //~ count+= imageLoad(overdraw, quad * 2 + ivec2(1, 1));
         
-        //~ count /= 4;
+        count /= 4;
         vec3 colors[10]= vec3[10](
             vec3(0,0,0), 
             vec3(12,17,115),

@@ -20,10 +20,7 @@ void main(void)
 uniform float compression;
 uniform float saturation;
 uniform float heat;
-uniform int image_index;
-uniform vec4 channels;
 
-uniform sampler2DArray images;
 uniform sampler2D image;
 uniform sampler2D colors;
 
@@ -35,31 +32,19 @@ void main(void)
     const vec3 rgby= vec3(0.3, 0.59, 0.11);
     float k1= 1.0 / pow(saturation, 1.0 / compression); // normalisation : saturation == blanc
     
-    vec4 color;
-    if(image_index == 0)        // stupid workaround
-        color= texture(image, vertex_texcoord);
-    else
-        color= texture(images, vec3(vertex_texcoord, float(image_index)));
-    
-    float y= dot(color.rgb, rgby);  // normalisation de la couleur : (color / y) == teinte
+    vec3 color= texture2D(image, vertex_texcoord).rgb;
+    float y= dot(color, rgby);  // normalisation de la couleur : (color / y) == teinte
     
     if(y > saturation)
-        color= vec4(y, y, y, color.a);
+        color= vec3(y, y, y);
     
     if(heat > 0.0)
         // applique une fausse couleur
-        color= texture(colors, vec2(saturation - y / saturation, 0.5));
+        color= texture2D(colors, vec2(saturation - y / saturation, 0.5)).rgb;
     else
         // applique la compression (gamma)
         color= (color / y) * k1 * pow(y, 1.0 / compression);
-
-    //~ color *= pow( 2.0, saturation );          // exposure
-    //~ color= pow( color, vec4( 1.0 / compression ) );  // gamma
-    if(channels != vec4(0, 0, 0, 1))
-        fragment_color= clamp( channels * color, vec4(0.0), vec4(1.0) );
-    else
-        // visualisation du canal alpha seul
-        fragment_color= clamp( color.aaaa, vec4(0.0), vec4(1) );
     
+    fragment_color= vec4(color, 1.0);
 }
 #endif

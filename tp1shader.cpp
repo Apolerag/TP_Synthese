@@ -43,7 +43,6 @@ public:
     {
         // compilation simplifiee
         m_program= gk::createProgram("tp1sphere.glsl");
-        //~ m_program= gk::loadProgram("tp1sphere.glsl")->defineFragment("TOTO").make();
         if(m_program == gk::GLProgram::null())
             return -1;
         

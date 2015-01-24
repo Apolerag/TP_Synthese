@@ -49,12 +49,11 @@ Image *ImageManager::insert( Image *object )
 
 Image *ImageManager::read( const std::string& filename )
 {
-    std::string fullname= search(filename);
-    Image *object= find(fullname);
+    Image *object= find(filename);
     if(object != NULL)
         return object;
     
-    object= ImageIO::readImage(fullname);
+    object= ImageIO::readImage(search(filename));
     if(object == NULL)
         return NULL;
     
@@ -100,12 +99,12 @@ ImageArray *readImageArray( const std::string& format, const unsigned int size )
     if(format.size() == 0)
         return NULL;
     
-    char tmp[1024];
+    char tmp[format.size() + 1024];
     ImageArray *array= new ImageArray();
     
     for(unsigned int i= 0; i < size; i++)
     {
-        sprintf(tmp, format.c_str(), (int) i+1);
+        snprintf(tmp, sizeof(tmp), format.c_str(), (int) i+1);
         
         std::string file= searchImage(tmp);
         if(IOFileSystem::isFilename(file) == false)
@@ -127,10 +126,10 @@ int writeImageArray( const std::string& format, ImageArray *array )
     if(array == NULL || array->images.size() == 0)
         return -1;
     
-    char tmp[1024];
+    char tmp[format.size() + 1024];
     for(unsigned int i= 0; i < array->images.size(); i++)
     {
-        sprintf(tmp, format.c_str(), i+1);
+        snprintf(tmp, sizeof(tmp), format.c_str(), i+1);
         if(writeImage(tmp, array->images[i]) < 0)
             return -1;
     }

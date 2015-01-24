@@ -10,13 +10,10 @@ SdlContext::SdlContext()
     :
     UIContext( new SdlFont, new GLCorePainter ),
     m_mouseX(0), m_mouseY(0), m_mouseButton(0)
-{
-    SDL_StartTextInput();
-}
+{}
 
 SdlContext::~SdlContext()
 {
-    SDL_StopTextInput();
     delete m_font;
     delete m_painter;
 }
@@ -73,37 +70,16 @@ void SdlContext::processMouseButtonEvent( SDL_MouseButtonEvent& event )
     UIContext::mouse(uiButton, uiState, uiMod, event.x, event.y);
 }
 
-void SdlContext::processDropEvent( const char *file )
-{
-    int x, y;
-    SDL_GetMouseState(&x, &y);
-
-    UIContext::file(file, x, y);
-}
-
-void SdlContext::processTextEvent( const char *string )
-{
-    int x, y;
-    SDL_GetMouseState(&x, &y);
-
-    //~ printf("widgets: text %s\n", string);
-    UIContext::text(string, x, y);
-}
-
 void SdlContext::processKeyboardEvent( SDL_KeyboardEvent& event )
 {
     if(event.type != SDL_KEYDOWN)
         return;
     
-    unsigned int key= translateKey(event.keysym.sym);
-    if(key == 0)
-        return;
-    
     int x, y;
     SDL_GetMouseState(&x, &y);
-    
-    //~ printf("widgets: scan 0x%x '%c' key %c %d, key name %s\n", event.keysym.scancode, event.keysym.scancode, event.keysym.sym, translateKey(event.keysym.sym), SDL_GetKeyName(event.keysym.sym));
-    UIContext::keyboard(key, x, y);
+
+    //~ printf("key %x %d %s\n", event.keysym.scancode, translateKey(event.keysym.sym), SDL_GetKeyName(event.keysym.sym));
+    UIContext::keyboard(translateKey(event.keysym.sym), x, y);
 }
 
 unsigned int SdlContext::translateKey( const SDL_Keycode k ) {
@@ -160,8 +136,8 @@ unsigned int SdlContext::translateKey( const SDL_Keycode k ) {
     case SDLK_KP_ENTER:
         return Key_Enter;
     default:
-        return 0;
-        //~ return k;
+        //~ return 0;
+        return k;
     }
 }
 

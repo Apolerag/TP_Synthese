@@ -23,15 +23,15 @@ ifeq ($(config),debug)
   OBJDIR     = obj/debug/mini_gl3core
   TARGETDIR  = .
   TARGET     = $(TARGETDIR)/mini_gl3core
-  DEFINES   += -DGK_OPENGL4 -DVERBOSE -DDEBUG
-  INCLUDES  += -I. -IgKit -Ilocal/linux32/include
+  DEFINES   += -DGK_OPENGL4 -DVERBOSE -DDEBUG -DGK_OPENEXR
+  INCLUDES  += -I. -IgKit -Ilocal/linux/include -I/usr/include/OpenEXR
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -g -mtune=native -W -Wall -Wno-unused-parameter -pipe -mtune=native -Og
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -g -W -Wall -Wextra -Wno-unused-parameter -pipe
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L. -Llocal/linux32/lib -Wl,-rpath,local/linux32/lib
+  ALL_LDFLAGS   += $(LDFLAGS) -L. -Llocal/linux/lib -Wl,-rpath,local/linux/lib
   LDDEPS    +=
-  LIBS      += $(LDDEPS) -lGLEW -lSDL2 -lSDL2_image -lSDL2_ttf -lGL
+  LIBS      += $(LDDEPS) -lIlmImf -lIlmThread -lImath -lHalf -lGLEW -lSDL2 -lSDL2_image -lSDL2_ttf -lGL
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -45,15 +45,15 @@ ifeq ($(config),release)
   OBJDIR     = obj/release/mini_gl3core
   TARGETDIR  = .
   TARGET     = $(TARGETDIR)/mini_gl3core
-  DEFINES   += -DGK_OPENGL4 -DVERBOSE
-  INCLUDES  += -I. -IgKit -Ilocal/linux32/include
+  DEFINES   += -DGK_OPENGL4 -DVERBOSE -DGK_OPENEXR
+  INCLUDES  += -I. -IgKit -Ilocal/linux/include -I/usr/include/OpenEXR
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O3 -mtune=native -W -Wall -Wno-unused-parameter -pipe
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O3 -W -Wall -Wextra -Wno-unused-parameter -pipe -mtune=native
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L. -s -Llocal/linux32/lib -Wl,-rpath,local/linux32/lib
+  ALL_LDFLAGS   += $(LDFLAGS) -L. -s -Llocal/linux/lib -Wl,-rpath,local/linux/lib
   LDDEPS    +=
-  LIBS      += $(LDDEPS) -lGLEW -lSDL2 -lSDL2_image -lSDL2_ttf -lGL
+  LIBS      += $(LDDEPS) -lIlmImf -lIlmThread -lImath -lHalf -lGLEW -lSDL2 -lSDL2_image -lSDL2_ttf -lGL
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
