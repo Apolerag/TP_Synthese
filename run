@@ -1,4 +1,4 @@
-make tuto_ray1
+make -j4 tuto_ray1
 
 ./tuto_ray1
 

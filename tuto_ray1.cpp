@@ -65,11 +65,13 @@ int build_triangles( const gk::Mesh *mesh )
 
 
 // calcule l'intersection d'un rayon et de tous les triangles
-bool intersect( const gk::Ray& ray, gk::Hit& hit )
+bool intersect( const gk::Ray& ray, gk::Hit& hit, bool ombre = false )
 {
     for(unsigned int i= 0; i < triangles.size(); i++) {
     	float t, u, v;
     	if(triangles[i].Intersect(ray, hit.t, t, u, v)) {
+                if(ombre)
+                    return true;
                 hit.t= t;
                 hit.u= u;
                 hit.v= v;
@@ -91,34 +93,25 @@ gk::Color direct( const gk::Point& p, const gk::Normal& n, const gk::MeshMateria
 {
     gk::Color color(0,0,0);
 
-
     gk::Point pointSources;
     gk::Ray ray;  // construire le rayon
     gk::Hit hit;   // preparer l'intersections
     unsigned int nbRayon = 10;
-
-
-    gk::Color pas(material.diffuse_color[0]/(sources.size()*nbRayon),
-        material.diffuse_color[1]/(sources.size()*nbRayon),
-        material.diffuse_color[2]/(sources.size()*nbRayon));
-
+    #pragma omp parallel for schedule(dynamic,1)
     for (unsigned int i = 0; i < sources.size(); ++i)
     {
-        for (unsigned int j = 1; j < nbRayon; ++j)
+        for (unsigned int j = 1; j < nbRayon+1; ++j)
         {
             sources[i].triangle.sampleUniform(oneFloat(),oneFloat(),pointSources);
             gk::Ray ray(p, pointSources);  // construire le rayon
             gk::Hit hit(ray);   // preparer l'intersection
             
-            if(!intersect(ray, hit)) color += gk::Color(material.diffuse_color) * - gk::Dot(n, gk::Normalize(p-pointSources))/nbRayon;
+            if(!intersect(ray, hit,true)) color += gk::Color(material.diffuse_color) * - gk::Dot(n, gk::Normalize(p-pointSources))/nbRayon;
         }
         //gk::dot(n, normalize(p,psources))
     }
-    //gk::Color color(material.diffuse_color / (sources.size()*10) * nbIntersection);
-  /*  color[0] /=  sources.size()*10; color[0] *= nbIntersection;
-    color[1] /=  sources.size()*10; color[1] *= nbIntersection;
-    color[2] /=  sources.size()*10; color[2] *= nbIntersection;*/
-    
+    #pragma omp barrier
+
    // color.print();
     return color;
 }

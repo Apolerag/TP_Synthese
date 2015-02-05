@@ -26,7 +26,7 @@ solution "TP"
 			flags { "OptimizeSpeed" }
 		
 		configuration "linux"
-			buildoptions { "-W -Wall -Wextra -Wno-unused-parameter", "-pipe" }
+			buildoptions { "-W -Wall -O3 -Wextra -Wno-unused-parameter ", "-pipe" }
 			
 			local glew_include= "local/linux/include"
 			local glew_lib= "local/linux/lib"
@@ -51,8 +51,8 @@ solution "TP"
 			
 		configuration { "linux", "release" }
 			buildoptions { "-mtune=native" }
---~ 			buildoptions { "-fopenmp" }
---~ 			linkoptions{ "-fopenmp" }
+ 			buildoptions { "-fopenmp" }
+			linkoptions{ "-fopenmp" }
 
 		configuration "windows"
 			includedirs { "local/windows/include" }

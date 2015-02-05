@@ -26,7 +26,7 @@ ifeq ($(config),debug)
   DEFINES   += -DGK_OPENGL4 -DVERBOSE -DDEBUG -DGK_OPENEXR
   INCLUDES  += -I. -IgKit -Ilocal/linux/include -I/usr/include/OpenEXR
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -g -W -Wall -Wextra -Wno-unused-parameter -pipe
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -g -W -Wall -O3 -Wextra -Wno-unused-parameter  -pipe
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   ALL_LDFLAGS   += $(LDFLAGS) -L. -Llocal/linux/lib -Wl,-rpath,local/linux/lib
@@ -48,10 +48,10 @@ ifeq ($(config),release)
   DEFINES   += -DGK_OPENGL4 -DVERBOSE -DGK_OPENEXR
   INCLUDES  += -I. -IgKit -Ilocal/linux/include -I/usr/include/OpenEXR
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O3 -W -Wall -Wextra -Wno-unused-parameter -pipe -mtune=native
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O3 -W -Wall -O3 -Wextra -Wno-unused-parameter  -pipe -mtune=native -fopenmp
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L. -s -Llocal/linux/lib -Wl,-rpath,local/linux/lib
+  ALL_LDFLAGS   += $(LDFLAGS) -L. -s -Llocal/linux/lib -Wl,-rpath,local/linux/lib -fopenmp
   LDDEPS    +=
   LIBS      += $(LDDEPS) -lIlmImf -lIlmThread -lImath -lHalf -lGLEW -lSDL2 -lSDL2_image -lSDL2_ttf -lGL
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ARCH) $(ALL_LDFLAGS) $(LIBS)
