@@ -1,6 +1,7 @@
 solution "TP"
 	configurations { "debug", "release" }
-    
+    	premake.gcc.cc  = 'clang'
+		premake.gcc.cxx = 'clang++'
 		local gkit_files = 
 		{
 			"gKit/*.cpp", "gKit/*.h",
@@ -76,17 +77,17 @@ solution "TP"
 			
 
 local project_files = {
-	"image_viewer",
-	"tuto_miniOBJ",
-	"tp1shader",
-	"batch_perf",
-	"tutorial1", 
-	"tutorial2",
-	"tutorial3",
-	"tessellation_tuto",
-	"tessellation_sphere",
-	"compute_tutorial1",
-	"compute_tutorial2",
+	--"image_viewer",
+	--"tuto_miniOBJ",
+	--"tp1shader",
+	--"batch_perf",
+	--"tutorial1", 
+	--"tutorial2",
+	--"tutorial3",
+	--"tessellation_tuto",
+	--"tessellation_sphere",
+	--"compute_tutorial1",
+	--"compute_tutorial2",
 	"tuto_ray1"
 }
 

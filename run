@@ -1,0 +1,5 @@
+make tuto_ray1
+
+./tuto_ray1
+
+eog render.png

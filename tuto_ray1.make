@@ -7,8 +7,8 @@ ifndef verbose
   SILENT = @
 endif
 
-CC = gcc
-CXX = g++
+CC = clang
+CXX = clang++
 AR = ar
 
 ifndef RESCOMP
@@ -20,7 +20,7 @@ ifndef RESCOMP
 endif
 
 ifeq ($(config),debug)
-  OBJDIR     = obj/debug/tuto_ray1
+  OBJDIR     = obj/debug
   TARGETDIR  = .
   TARGET     = $(TARGETDIR)/tuto_ray1
   DEFINES   += -DGK_OPENGL4 -DVERBOSE -DDEBUG -DGK_OPENEXR
@@ -42,7 +42,7 @@ ifeq ($(config),debug)
 endif
 
 ifeq ($(config),release)
-  OBJDIR     = obj/release/tuto_ray1
+  OBJDIR     = obj/release
   TARGETDIR  = .
   TARGET     = $(TARGETDIR)/tuto_ray1
   DEFINES   += -DGK_OPENGL4 -DVERBOSE -DGK_OPENEXR

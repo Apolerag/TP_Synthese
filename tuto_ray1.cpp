@@ -35,11 +35,12 @@ int build_sources( const gk::Mesh *mesh )
 {
     for(int i= 0; i < mesh->triangleCount(); i++)
     {
-        // recuepre la matiere associee a chaque triangle de l'objet
+        // recupere la matiere associee a chaque triangle de l'objet
         const gk::MeshMaterial& material= mesh->triangleMaterial(i);
        
         if(gk::Color(material.emission).isBlack() == false)
             // inserer la source de lumiere dans l'ensemble.
+            //std::cout<<gk::Color(material.emission)<<std::endl;
             sources.push_back( Source(mesh->triangle(i), gk::Color(material.emission)) );
     }
     
@@ -48,6 +49,7 @@ int build_sources( const gk::Mesh *mesh )
 }
 
 
+// ca
 // ensemble de triangles
 std::vector<gk::Triangle> triangles;
 
@@ -65,17 +67,15 @@ int build_triangles( const gk::Mesh *mesh )
 // calcule l'intersection d'un rayon et de tous les triangles
 bool intersect( const gk::Ray& ray, gk::Hit& hit )
 {
-    for(unsigned int i= 0; i < triangles.size(); i++)
-    {
-	float t, u, v;
-	if(triangles[i].Intersect(ray, hit.t, t, u, v))
-	{
-            hit.t= t;
-            hit.u= u;
-            hit.v= v;
-            hit.p= ray(t);      // evalue la positon du point d'intersection sur le rayon
-            hit.object_id= i;	// permet de retrouver toutes les infos associees au triangle
-	}
+    for(unsigned int i= 0; i < triangles.size(); i++) {
+    	float t, u, v;
+    	if(triangles[i].Intersect(ray, hit.t, t, u, v)) {
+                hit.t= t;
+                hit.u= u;
+                hit.v= v;
+                hit.p= ray(t);      // evalue la positon du point d'intersection sur le rayon
+                hit.object_id= i;
+    	}
     }
 
     return (hit.object_id != -1);
@@ -89,12 +89,37 @@ float oneFloat( )
 
 gk::Color direct( const gk::Point& p, const gk::Normal& n, const gk::MeshMaterial& material )
 {
-    gk::Color color(1.f, 1.f, 1.f);
-    
-    // a completer
-    //~ { ... }
+    gk::Color color(material.diffuse_color);
 
+
+    gk::Point pointSources;
+    gk::Ray ray;  // construire le rayon
+    gk::Hit hit;   // preparer l'intersections
+    unsigned int nbRayon = 10;
+
+
+    gk::Color pas(material.diffuse_color[0]/(sources.size()*nbRayon),
+        material.diffuse_color[1]/(sources.size()*nbRayon),
+        material.diffuse_color[2]/(sources.size()*nbRayon));
+
+    for (unsigned int i = 0; i < sources.size(); ++i)
+    {
+        for (unsigned int j = 1; j < nbRayon; ++j)
+        {
+            sources[i].triangle.sampleUniform(oneFloat(),oneFloat(),pointSources);
+            gk::Ray ray(p, pointSources);  // construire le rayon
+            gk::Hit hit(ray);   // preparer l'intersection
+            
+            if(intersect(ray, hit)) color = gk::Color(0,0,0);
+        }
+        
+    }
+    //gk::Color color(material.diffuse_color / (sources.size()*10) * nbIntersection);
+  /*  color[0] /=  sources.size()*10; color[0] *= nbIntersection;
+    color[1] /=  sources.size()*10; color[1] *= nbIntersection;
+    color[2] /=  sources.size()*10; color[2] *= nbIntersection;*/
     
+   // color.print();
     return color;
 }
 
@@ -168,14 +193,14 @@ int main( )
                 gk::MeshMaterial material= mesh->triangleMaterial(hit.object_id);
 
                 // couleur "aleatoire", eventuellement
-                //~ material.diffuse_color= gk::Color(material.diffuse_color) * gk::Color(1.f - float(hit.object_id % 100) / 99.f, float(hit.object_id % 10) / 9.f, float(hit.object_id % 1000) / 999.f);       
+                material.diffuse_color= gk::Color(material.diffuse_color) * gk::Color(1.f - float(hit.object_id % 100) / 99.f, float(hit.object_id % 10) / 9.f, float(hit.object_id % 1000) / 999.f);       
                 
                 // calculer l'energie reflechie par le point vers la camera
                 // etape 1 : eclairage direct
-                color= color + direct(p, normal, material);
+                color += direct(p, normal, material);
                
                 // etape 2 : eclairage indirect
-                color= color + indirect(p, normal, material);
+                color += indirect(p, normal, material);
             }
            
             // ecrire la couleur dans l'image

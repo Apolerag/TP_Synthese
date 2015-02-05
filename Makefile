@@ -6,72 +6,17 @@ ifndef config
 endif
 export config
 
-PROJECTS := image_viewer tuto_miniOBJ tp1shader batch_perf tutorial1 tutorial2 tutorial3 tessellation_tuto tessellation_sphere compute_tutorial1 compute_tutorial2 tuto_ray1
+PROJECTS := tuto_ray1
 
 .PHONY: all clean help $(PROJECTS)
 
 all: $(PROJECTS)
-
-image_viewer: 
-	@echo "==== Building image_viewer ($(config)) ===="
-	@${MAKE} --no-print-directory -C . -f image_viewer.make
-
-tuto_miniOBJ: 
-	@echo "==== Building tuto_miniOBJ ($(config)) ===="
-	@${MAKE} --no-print-directory -C . -f tuto_miniOBJ.make
-
-tp1shader: 
-	@echo "==== Building tp1shader ($(config)) ===="
-	@${MAKE} --no-print-directory -C . -f tp1shader.make
-
-batch_perf: 
-	@echo "==== Building batch_perf ($(config)) ===="
-	@${MAKE} --no-print-directory -C . -f batch_perf.make
-
-tutorial1: 
-	@echo "==== Building tutorial1 ($(config)) ===="
-	@${MAKE} --no-print-directory -C . -f tutorial1.make
-
-tutorial2: 
-	@echo "==== Building tutorial2 ($(config)) ===="
-	@${MAKE} --no-print-directory -C . -f tutorial2.make
-
-tutorial3: 
-	@echo "==== Building tutorial3 ($(config)) ===="
-	@${MAKE} --no-print-directory -C . -f tutorial3.make
-
-tessellation_tuto: 
-	@echo "==== Building tessellation_tuto ($(config)) ===="
-	@${MAKE} --no-print-directory -C . -f tessellation_tuto.make
-
-tessellation_sphere: 
-	@echo "==== Building tessellation_sphere ($(config)) ===="
-	@${MAKE} --no-print-directory -C . -f tessellation_sphere.make
-
-compute_tutorial1: 
-	@echo "==== Building compute_tutorial1 ($(config)) ===="
-	@${MAKE} --no-print-directory -C . -f compute_tutorial1.make
-
-compute_tutorial2: 
-	@echo "==== Building compute_tutorial2 ($(config)) ===="
-	@${MAKE} --no-print-directory -C . -f compute_tutorial2.make
 
 tuto_ray1: 
 	@echo "==== Building tuto_ray1 ($(config)) ===="
 	@${MAKE} --no-print-directory -C . -f tuto_ray1.make
 
 clean:
-	@${MAKE} --no-print-directory -C . -f image_viewer.make clean
-	@${MAKE} --no-print-directory -C . -f tuto_miniOBJ.make clean
-	@${MAKE} --no-print-directory -C . -f tp1shader.make clean
-	@${MAKE} --no-print-directory -C . -f batch_perf.make clean
-	@${MAKE} --no-print-directory -C . -f tutorial1.make clean
-	@${MAKE} --no-print-directory -C . -f tutorial2.make clean
-	@${MAKE} --no-print-directory -C . -f tutorial3.make clean
-	@${MAKE} --no-print-directory -C . -f tessellation_tuto.make clean
-	@${MAKE} --no-print-directory -C . -f tessellation_sphere.make clean
-	@${MAKE} --no-print-directory -C . -f compute_tutorial1.make clean
-	@${MAKE} --no-print-directory -C . -f compute_tutorial2.make clean
 	@${MAKE} --no-print-directory -C . -f tuto_ray1.make clean
 
 help:
@@ -84,17 +29,6 @@ help:
 	@echo "TARGETS:"
 	@echo "   all (default)"
 	@echo "   clean"
-	@echo "   image_viewer"
-	@echo "   tuto_miniOBJ"
-	@echo "   tp1shader"
-	@echo "   batch_perf"
-	@echo "   tutorial1"
-	@echo "   tutorial2"
-	@echo "   tutorial3"
-	@echo "   tessellation_tuto"
-	@echo "   tessellation_sphere"
-	@echo "   compute_tutorial1"
-	@echo "   compute_tutorial2"
 	@echo "   tuto_ray1"
 	@echo ""
 	@echo "For more information, see http://industriousone.com/premake/quick-start"
