@@ -305,7 +305,7 @@ Mesh *readOBJ( const std::string& filename )
     printf("  %lu positions, %lu texcoords, %lu normals, %lu triangles\n",  
         mesh->positions.size(), mesh->texcoords.size(), mesh->normals.size(), 
         mesh->indices.size() / 3);
-    printf("  %lu material groups\n", mesh->groups.size());
+    printf("  %u material groups\n", mesh->groups.size());
     printf("done.\n");
     return mesh;
 }

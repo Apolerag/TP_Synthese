@@ -89,7 +89,7 @@ float oneFloat( )
 
 gk::Color direct( const gk::Point& p, const gk::Normal& n, const gk::MeshMaterial& material )
 {
-    gk::Color color(material.diffuse_color);
+    gk::Color color(0,0,0);
 
 
     gk::Point pointSources;
@@ -110,9 +110,9 @@ gk::Color direct( const gk::Point& p, const gk::Normal& n, const gk::MeshMateria
             gk::Ray ray(p, pointSources);  // construire le rayon
             gk::Hit hit(ray);   // preparer l'intersection
             
-            if(intersect(ray, hit)) color = gk::Color(0,0,0);
+            if(!intersect(ray, hit)) color += gk::Color(material.diffuse_color) * - gk::Dot(n, gk::Normalize(p-pointSources))/nbRayon;
         }
-        
+        //gk::dot(n, normalize(p,psources))
     }
     //gk::Color color(material.diffuse_color / (sources.size()*10) * nbIntersection);
   /*  color[0] /=  sources.size()*10; color[0] *= nbIntersection;
