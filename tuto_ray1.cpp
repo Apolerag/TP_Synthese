@@ -2,6 +2,9 @@
 
 #include <cstdlib>
 #include <time.h>
+#include <math.h>       /* cos */
+
+#define PI 3.14159265
 
 #include "Geometry.h"
 #include "Transform.h"
@@ -92,27 +95,25 @@ float oneFloat( )
 gk::Color direct( const gk::Point& p, const gk::Normal& n, const gk::MeshMaterial& material )
 {
     gk::Color color(0,0,0);
+    unsigned int nbRayon = 200;
 
-    gk::Point pointSources;
-    gk::Ray ray;  // construire le rayon
-    gk::Hit hit;   // preparer l'intersections
-    unsigned int nbRayon = 10;
     #pragma omp parallel for schedule(dynamic,1)
     for (unsigned int i = 0; i < sources.size(); ++i)
     {
         for (unsigned int j = 1; j < nbRayon+1; ++j)
         {
+            gk::Point pointSources;
             sources[i].triangle.sampleUniform(oneFloat(),oneFloat(),pointSources);
-            gk::Ray ray(p, pointSources);  // construire le rayon
+            gk::Ray ray(p, pointSources);  // construire le rayon entre le point et la source
             gk::Hit hit(ray);   // preparer l'intersection
             
-            if(!intersect(ray, hit,true)) color += gk::Color(material.diffuse_color) * - gk::Dot(n, gk::Normalize(p-pointSources))/nbRayon;
+            if(!intersect(ray, hit,true)) {
+               color += gk::Color(material.diffuse_color) * - gk::Dot(n, gk::Normalize(p-pointSources))/nbRayon;
+            }
         }
-        //gk::dot(n, normalize(p,psources))
     }
     #pragma omp barrier
 
-   // color.print();
     return color;
 }
 
@@ -122,6 +123,13 @@ gk::Color indirect( const gk::Point& p, const gk::Normal& n, const gk::MeshMater
     
     // a completer
     //~ { ... }
+    /*
+    //gk::Ray rebond = cos(ray);
+    std::cout<<"vec ";
+    ray.d.print();
+    std::cout<<"inv ";
+    ray.inv_d.print();
+    std::cout<<std::endl;*/
     
     return color;
 }
@@ -195,6 +203,7 @@ int main( )
                 // etape 2 : eclairage indirect
                 color += indirect(p, normal, material);
             }
+            //else color = gk::Color(0.f,0.f,0.f);
            
             // ecrire la couleur dans l'image
             image->setPixel(x, y, gk::Color(color.r, color.g, color.b, 1.0f));

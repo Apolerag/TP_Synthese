@@ -1,5 +1,7 @@
+#!/bin/bash
+
 make -j4 tuto_ray1
 
-./tuto_ray1
+time ./tuto_ray1
 
-eog render.png
+eog render.png&
