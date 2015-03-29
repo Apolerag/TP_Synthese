@@ -45,6 +45,7 @@ int build_sources( const gk::Mesh *mesh )
             // inserer la source de lumiere dans l'ensemble.
             //std::cout<<gk::Color(material.emission)<<std::endl;
             sources.push_back( Source(mesh->triangle(i), gk::Color(material.emission)) );
+
     }
     
     printf("%u sources.\n", sources.size());
@@ -59,8 +60,18 @@ std::vector<gk::Triangle> triangles;
 // recuperer les triangles du mesh
 int build_triangles( const gk::Mesh *mesh )
 {
-    for(int i= 0; i < mesh->triangleCount(); i++)
+    for(int i= 0; i < mesh->triangleCount(); i++) {
         triangles.push_back( mesh->triangle(i) );
+
+        //const gk::MeshMaterial& material= mesh->triangleMaterial(i);
+        //gk::Vector c = gk::Normalize(gk::Vector(0.7,0.7,0.7));
+
+        //std::cout<<material.name<<" "<<material.diffuse_texture<<" "<<material.specular_texture<<std::endl;
+        // std::cout<<"c.r = "<<c.x<<" c.g = "<<c.y<<" c.b = "<<c.z<<std::endl;
+
+        // std::cout<<"kd = "<<material.kd<<" ks = "<<material.ks<<" ns = "<<material.ns<<" ni = "<<material.ni<<std::endl;
+    }
+        
     
     printf("%u triangles.\n", triangles.size());
     return triangles.size();
@@ -96,6 +107,9 @@ gk::Color direct( const gk::Point& p, const gk::Normal& n, const gk::MeshMateria
 {
     gk::Color color(0,0,0);
     unsigned int nbRayon = 200;
+    const float r = material.diffuse_color.r, g = material.diffuse_color.g, b = material.diffuse_color.b;
+    const float kd = material.kd;
+    //std::cout<<kd<<std::endl;
 
     #pragma omp parallel for schedule(dynamic,1)
     for (unsigned int i = 0; i < sources.size(); ++i)
@@ -103,12 +117,15 @@ gk::Color direct( const gk::Point& p, const gk::Normal& n, const gk::MeshMateria
         for (unsigned int j = 1; j < nbRayon+1; ++j)
         {
             gk::Point pointSources;
-            sources[i].triangle.sampleUniform(oneFloat(),oneFloat(),pointSources);
+            float proba = sources[i].triangle.sampleUniform(oneFloat(),oneFloat(),pointSources); // choisi un point aléatoirement sur le triangle   
+                                                                                                 //et retourne la probabilité que le point soit choisi
             gk::Ray ray(p, pointSources);  // construire le rayon entre le point et la source
             gk::Hit hit(ray);   // preparer l'intersection
+
+            //float theta = n * ray.d;
             
-            if(!intersect(ray, hit,true)) {
-               color += gk::Color(material.diffuse_color) * - gk::Dot(n, gk::Normalize(p-pointSources))/nbRayon;
+            if(!intersect(ray, hit,true)) { // si pas d'objet entre la source de lumière et la point 
+               color += gk::Color(r, g, b) * - gk::Dot(n, gk::Normalize(p-pointSources))/nbRayon;
             }
         }
     }
@@ -195,7 +212,9 @@ int main( )
 
                 // couleur "aleatoire", eventuellement
                 material.diffuse_color= gk::Color(material.diffuse_color) * gk::Color(1.f - float(hit.object_id % 100) / 99.f, float(hit.object_id % 10) / 9.f, float(hit.object_id % 1000) / 999.f);       
-                
+                std::cout<<material.diffuse_texture<<std::endl;
+                //kd * diffuse_color * diffuse_texture + ks * specular_color * specular_texture
+               
                 // calculer l'energie reflechie par le point vers la camera
                 // etape 1 : eclairage direct
                 color += direct(p, normal, material);

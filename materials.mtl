@@ -1,5 +1,6 @@
 newmtl diffuse50SG
 Kd 0.7 0.7 0.7
+map_Kd default.png
 
 newmtl red50SG
 Kd 0.7 0 0
