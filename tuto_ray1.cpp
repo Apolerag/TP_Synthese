@@ -102,6 +102,11 @@ float oneFloat( )
     return drand48();
 }
 
+double distance(const gk::Point &p, const gk::Point &q)
+{
+    return sqrt( pow(p.x - q.x, 2) + pow(p.y - q.y, 2) + pow(p.z - q.z, 2) );
+}
+
 /**
  * @brief calcul l'éclairage direct d'un point
  * @details 
@@ -133,7 +138,7 @@ gk::Color direct( const gk::Point& p, const gk::Normal& n, const gk::MeshMateria
                 gk::Hit hit(ray);   // preparer l'intersection
 
                 if(!intersect(ray, hit,true)) { // si pas d'objet entre la source de lumière et la point 
-                    color += gk::Color(r*kd, g*kd, b*kd) * cos( -gk::Dot(n, gk::Normalize(p-pointSources)) )/(nbRayon);
+                    color += gk::Color(r/nbRayon, g/nbRayon, b/nbRayon) * cos( -gk::Dot(n, gk::Normalize(p-pointSources)));
                 }
             }
         }
@@ -163,7 +168,7 @@ gk::Color direct( const gk::Point& p, const gk::Normal& n, const gk::MeshMateria
                 
 
                 if(!intersect(ray, hit,true)) { // si pas d'objet entre la source de lumière et la point 
-                    color += gk::Color(r*kd, g*kd, b*kd) * cos( -gk::Dot(n, gk::Normalize(p-pointSources)) )/(nbRayon);
+                    color += gk::Color(r/nbRayon, g/nbRayon, b/nbRayon) * cos( -gk::Dot(n, gk::Normalize(p-pointSources)));
                 }
             }
         }
@@ -185,9 +190,9 @@ gk::Color direct( const gk::Point& p, const gk::Normal& n, const gk::MeshMateria
  */
 gk::Color indirect( const gk::Point& p, const gk::Normal& n, const gk::MeshMaterial& material, const unsigned int nbRayon = 50, const int nbLance = 2 )
 {
-   
     const float r = material.diffuse_color.r, g = material.diffuse_color.g, b = material.diffuse_color.b;
-    const float kd = material.ks;
+    const float kd = material.kd;
+
     gk::Color color(0.f, 0.f, 0.f);
 
     if(nbLance == 0)
@@ -204,9 +209,10 @@ gk::Color indirect( const gk::Point& p, const gk::Normal& n, const gk::MeshMater
             gk::Point pHit = ray(hit.t);
             gk::Normal normalHit = mesh->triangle(hit.object_id).normal();
             gk::MeshMaterial materialHit = mesh->triangleMaterial(hit.object_id);
+            
             if(!(p == pHit)) {
 
-                color += gk::Color(r*kd, g*kd, b*kd)* cos( -gk::Dot(n, gk::Normalize(p-pHit)) )/(2*nbRayon);
+                color += gk::Color(r/nbRayon, g/nbRayon, b/nbRayon) * cos( -gk::Dot(n, gk::Normalize(p-pHit)) );
                 color += indirect(pHit, normalHit, materialHit, nbRayon, nbLance-1)/(2*nbRayon);
             }
         }
@@ -277,11 +283,11 @@ int main( )
                 gk::MeshMaterial material= mesh->triangleMaterial(hit.object_id);
 
                 // couleur "aleatoire", eventuellement
-                //material.diffuse_color= gk::Color(material.diffuse_color) * gk::Color(1.f - float(hit.object_id % 100) / 99.f, float(hit.object_id % 10) / 9.f, float(hit.object_id % 1000) / 999.f);       
+                material.diffuse_color= gk::Color(material.diffuse_color) * gk::Color(1.f - float(hit.object_id % 100) / 99.f, float(hit.object_id % 10) / 9.f, float(hit.object_id % 1000) / 999.f);       
                 
                 // calculer l'energie reflechie par le point vers la camera
                 // etape 1 : eclairage direct
-                color += direct(p, normal, material,200,true);
+                color += direct(p, normal, material,100,true);
                
                 // etape 2 : eclairage indirect
                 color += indirect(p, normal, material, 20, 2);
